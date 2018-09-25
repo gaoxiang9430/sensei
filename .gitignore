@@ -1,0 +1,4 @@
+dataset/gtsrb/GTSRB/
+dataset/gtsrb/models
+*.pyc
+temp
