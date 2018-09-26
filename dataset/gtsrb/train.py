@@ -46,6 +46,7 @@ def preprocess_img(self, img):
     return img
 
 class gtsrb_model():
+    'source dir is the relative path of gtsrb data set'
     def __init__(self, source_dir=None):
         # Config related to images in the gstrb dataset
         self.num_classes = 43        
@@ -243,10 +244,10 @@ class gtsrb_model():
         model.load_weights(weights_file)
         return model
 
-    def test_dnn_model(self, model=None, x_test=None, y_test=None):
+    def test_dnn_model(self, model=None, x_test=None, y_test=None, print_label=""):
         score = model.evaluate(x_test, y_test, verbose=0)
-        print('Test loss:', score[0])
-        print('Test accuracy:', score[1])
+        print(print_label, ' - Test loss:', score[0])
+        print(print_label, ' - Test accuracy:', score[1])
 
 
 if __name__ == '__main__':
