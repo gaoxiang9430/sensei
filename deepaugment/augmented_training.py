@@ -47,23 +47,26 @@ class Data_Generator(keras.utils.Sequence):
             return
         elif self.strategy == 'replace30':
             del self.x_train
-            temp_x_original_train = copy.deepcopy(self.x_original_train)
+            #temp_x_original_train = copy.deepcopy(self.x_original_train)
+            temp_x_original_train, self.y_train = self.original_model.load_original_data('train')
             self.x_train, self.y_train = self.au.random_replace(temp_x_original_train, self.y_train)
             self.x_train = self.original_model.preprocess_original_imgs(self.x_train)
+            print(" Augmentation replace30 Done!!!")
         elif self.strategy == 'replace40':
             del self.x_train
             temp_x_original_train = copy.deepcopy(self.x_original_train)
             self.x_train, self.y_train = self.au.random40_replace(temp_x_original_train, self.y_train)
             self.x_train = self.original_model.preprocess_original_imgs(self.x_train)
+            print(" Augmentation replace40 Done!!!")
         elif self.strategy == 'replace_worst_of_10':
             del self.x_train
             temp_x_original_train = copy.deepcopy(self.x_original_train)
             x_train_10, self.y_train = self.au.worst_of_10(temp_x_original_train, self.y_train)
             #TODO: evaluate 10 example, and update self.x_train
             self.x_train = self.original_model.preprocess_original_imgs(self.x_train)
+            print(" Augmentation replace_worst_of_10 Done!!!")
         else:
             raise Exception('unsupported augment strategy')
-        print(" Perturbation Done!!!")
 
 class Augmented_Model:
 
@@ -88,10 +91,14 @@ if __name__ == '__main__':
     target = gtsrb_model(source_dir='GTSRB')
     atm = Augmented_Model(target)
 
-    #_model30 = [0, "models/gtsrb.oxford.replace30_model.hdf5"]
-    #atm.train("replace30", _model30)
+    #_model30 = [0, "models/gtsrb.oxford.model.hdf5"]
+    #atm.train("original", _model30)
     #atm.test(_model30)
 
-    _model40 = [0, "models/gtsrb.oxford.replace40_model.hdf5"]
-    atm.train("replace40", _model40)
-    atm.test(_model40)
+    _model30 = [0, "models/gtsrb.oxford.replace30_model.hdf5"]
+    atm.train("replace30", _model30)
+    atm.test(_model30)
+
+    #_model40 = [0, "models/gtsrb.oxford.replace40_model.hdf5"]
+    #atm.train("replace40", _model40)
+    #atm.test(_model40)

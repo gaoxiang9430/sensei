@@ -37,11 +37,11 @@ class Perturbator:
     def random_perturb_image(self, img=None):
         'randomly perturb one image'
         angle = random.choice(self.rotation_range)
-        translation = random.choice(self.translate_range)
-        shear = random.choice(self.shear_range)
+        #translation = random.choice(self.translate_range)
+        #shear = random.choice(self.shear_range)
         img = self.trans_functions["rotate"](img, angle)
-        img = self.trans_functions["translate"](img, translation)
-        img = self.trans_functions["shear"](img, shear)
+        #img = self.trans_functions["translate"](img, translation)
+        #img = self.trans_functions["shear"](img, shear)
         return img
 
 
