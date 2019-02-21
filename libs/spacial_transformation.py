@@ -1,5 +1,16 @@
-import cv2
+
+from __future__ import print_function
+
+import math
 import numpy as np
+import cv2
+import pickle
+import imutils
+
+def hamming2(s1, s2):
+    """Calculate the Hamming distance between two bit strings"""
+    assert len(s1) == len(s2)
+    return sum(c1 != c2 for c1, c2 in zip(s1, s2))
 
 def image_rotation_cropped(image, angle):
     image_height, image_width = image.shape[0:2]
@@ -16,17 +27,19 @@ def image_rotation_cropped(image, angle):
     )
     return image_rotated_cropped
 
-def image_translation_cropped(img, params):
-    if not isinstance(params, list):
-        params = [params, params]
+def image_translation_cropped(img, params, params2=0):
+    # if not isinstance(params, list):
+    #     params = [params, params]
     rows, cols, ch = img.shape
 
-    M = np.float32([[1, 0, params[0]], [0, 1, 0]])
+    M = np.float32([[1, 0, params], [0, 1, params2]])
     dst = cv2.warpAffine(img, M, (cols, rows))
-    if params[0] >= 0:
-        return dst[:,int(params[0]):]
-    else:
-        return dst[:,:int(params[0])]
+    return dst
+    # if params[0] >= 0:
+    #     return dst[:,int(params[0]):]
+    # else:
+    #     return dst[:,:int(params[0])]
+
 
 def image_shear_cropped(img, params):
     rows, cols, ch = img.shape
@@ -40,12 +53,19 @@ def image_shear_cropped(img, params):
     else:
         return dst[:,int(factor*cols):]
 
+
 def rotate_image(image, angle):
+    image = imutils.rotate_bound(image, angle)
+    return image
+
+
+def rotate_image_backup(image, angle):
     """
     Rotates an OpenCV 2 / NumPy image about it's centre by the given angle
     (in degrees). The returned image will be large enough to hold the entire
     new image, with a black background
     """
+
     # Get the image size
     # No that's not an error - NumPy stores image matricies backwards
     image_size = (image.shape[1], image.shape[0])
@@ -116,6 +136,7 @@ def largest_rotated_rect(w, h, angle):
     Original JS code by 'Andri' and Magnus Hoff from Stack Overflow
     Converted to Python by Aaron Snoswell
     """
+
     quadrant = int(math.floor(angle / (math.pi / 2))) & 3
     sign_alpha = angle if ((quadrant & 1) == 0) else math.pi - angle
     alpha = (sign_alpha % math.pi + math.pi) % math.pi
@@ -146,6 +167,7 @@ def crop_around_center(image, width, height):
     Given a NumPy / OpenCV 2 image, crops it to the given width and height,
     around it's centre point
     """
+
     image_size = (image.shape[1], image.shape[0])
     image_center = (int(image_size[0] * 0.5), int(image_size[1] * 0.5))
 
@@ -167,7 +189,7 @@ def image_zoom(image, param):
     param: 1-2
     '''
     res = cv2.resize(image,None,fx=param, fy=param, interpolation = cv2.INTER_LINEAR)
-    res = crop_around_center(res, 32, 32)
+    # res = crop_around_center(res, 32, 32)
     return res
 
 def image_blur(image, params):
@@ -180,6 +202,7 @@ def image_brightness(image, param):
     image = np.clip(image, 0, 255)
     image = np.uint8(image)
     return image
+
 def image_contrast(image, param):
     '''
     param: 0-2

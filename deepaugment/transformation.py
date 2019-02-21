@@ -1,234 +1,213 @@
-
-from __future__ import print_function
-
-import math
+from config import global_config as config
+import random
 import numpy as np
-import cv2
-import pickle
-
-def hamming2(s1, s2):
-    """Calculate the Hamming distance between two bit strings"""
-    assert len(s1) == len(s2)
-    return sum(c1 != c2 for c1, c2 in zip(s1, s2))
-
-def image_rotation_cropped(image, angle):
-    image_height, image_width = image.shape[0:2]
-    
-    image_orig = np.copy(image)
-    image_rotated = rotate_image(image, angle)
-    image_rotated_cropped = crop_around_center(
-        image_rotated,
-        *largest_rotated_rect(
-            image_width,
-            image_height,
-            math.radians(angle)
-        )
-    )
-    return image_rotated_cropped
-
-def image_translation_cropped(img, params):
-    if not isinstance(params, list):
-        params = [params, params]
-    rows, cols, ch = img.shape
-
-    M = np.float32([[1, 0, params[0]], [0, 1, 0]])
-    dst = cv2.warpAffine(img, M, (cols, rows))
-    if params[0] >= 0:
-        return dst[:,int(params[0]):]
-    else:
-        return dst[:,:int(params[0])]
-
-def image_shear_cropped(img, params):
-    rows, cols, ch = img.shape
-    factor = params*(-1.0)
-    M = np.float32([[1, factor, 0], [0, 1, 0]])
-    dst = cv2.warpAffine(img, M, (cols, rows))
-    if int(factor*cols) == 0:
-        return dst
-    if(params >= 0):
-        return dst[:,:int(factor*cols)]
-    else:
-        return dst[:,int(factor*cols):]
-
-def rotate_image(image, angle):
-    """
-    Rotates an OpenCV 2 / NumPy image about it's centre by the given angle
-    (in degrees). The returned image will be large enough to hold the entire
-    new image, with a black background
-    """
-
-    # Get the image size
-    # No that's not an error - NumPy stores image matricies backwards
-    image_size = (image.shape[1], image.shape[0])
-    image_center = tuple(np.array(image_size) / 2)
-
-    # Convert the OpenCV 3x2 rotation matrix to 3x3
-    rot_mat = np.vstack(
-        [cv2.getRotationMatrix2D(image_center, angle, 1.0), [0, 0, 1]]
-    )
-
-    rot_mat_notranslate = np.matrix(rot_mat[0:2, 0:2])
-
-    # Shorthand for below calcs
-    image_w2 = image_size[0] * 0.5
-    image_h2 = image_size[1] * 0.5
-
-    # Obtain the rotated coordinates of the image corners
-    rotated_coords = [
-        (np.array([-image_w2,  image_h2]) * rot_mat_notranslate).A[0],
-        (np.array([ image_w2,  image_h2]) * rot_mat_notranslate).A[0],
-        (np.array([-image_w2, -image_h2]) * rot_mat_notranslate).A[0],
-        (np.array([ image_w2, -image_h2]) * rot_mat_notranslate).A[0]
-    ]
-
-    # Find the size of the new image
-    x_coords = [pt[0] for pt in rotated_coords]
-    x_pos = [x for x in x_coords if x > 0]
-    x_neg = [x for x in x_coords if x < 0]
-
-    y_coords = [pt[1] for pt in rotated_coords]
-    y_pos = [y for y in y_coords if y > 0]
-    y_neg = [y for y in y_coords if y < 0]
-
-    right_bound = max(x_pos)
-    left_bound = min(x_neg)
-    top_bound = max(y_pos)
-    bot_bound = min(y_neg)
-
-    new_w = int(abs(right_bound - left_bound))
-    new_h = int(abs(top_bound - bot_bound))
-
-    # We require a translation matrix to keep the image centred
-    trans_mat = np.matrix([
-        [1, 0, int(new_w * 0.5 - image_w2)],
-        [0, 1, int(new_h * 0.5 - image_h2)],
-        [0, 0, 1]
-    ])
-
-    # Compute the tranform for the combined rotation and translation
-    affine_mat = (np.matrix(trans_mat) * np.matrix(rot_mat))[0:2, :]
-
-    # Apply the transform
-    result = cv2.warpAffine(
-        image,
-        affine_mat,
-        (new_w, new_h),
-        flags=cv2.INTER_LINEAR
-    )
-
-    return result
 
 
-def largest_rotated_rect(w, h, angle):
-    """
-    Given a rectangle of size wxh that has been rotated by 'angle' (in
-    radians), computes the width and height of the largest possible
-    axis-aligned rectangle within the rotated rectangle.
-    Original JS code by 'Andri' and Magnus Hoff from Stack Overflow
-    Converted to Python by Aaron Snoswell
-    """
+class Transformation:
 
-    quadrant = int(math.floor(angle / (math.pi / 2))) & 3
-    sign_alpha = angle if ((quadrant & 1) == 0) else math.pi - angle
-    alpha = (sign_alpha % math.pi + math.pi) % math.pi
+    def __init__(self, rotation=0, translate=0, translate_v=0, shear=0, zoom=1,
+                 blur=0, brightness=0, contrast=1):
+        self.rotation = rotation
+        self.translate = translate
+        self.translate_v = translate_v
+        self.shear = shear
+        self.zoom = zoom
+        self.blur = blur
+        self.brightness = brightness
+        self.contrast = contrast
 
-    bb_w = w * math.cos(alpha) + h * math.sin(alpha)
-    bb_h = w * math.sin(alpha) + h * math.cos(alpha)
+    def __eq__(self, other):
+        return self.rotation == other.rotation\
+               and self.translate == other.translate \
+               and self.translate_v == other.translate_v \
+               and self.shear == other.shear\
+               and self.zoom == other.zoom\
+               and self.blur == other.blur\
+               and self.brightness == other.brightness\
+               and self.contrast == other.contrast
 
-    gamma = math.atan2(bb_w, bb_w) if (w < h) else math.atan2(bb_w, bb_w)
+    def compare_paras(self, other):
+        diff = [self.rotation == other.rotation,
+                self.translate == other.translate,
+                self.translate_v == other.translate_v,
+                self.shear == other.shear,
+                self.zoom == other.zoom,
+                self.blur == other.blur,
+                self.brightness == other.brightness,
+                self.contrast == other.contrast]
+        return len(diff) - np.array(diff, dtype=int).sum()
 
-    delta = math.pi - alpha - gamma
+    @staticmethod
+    def fit_range(x, x_min, x_max):
+        if x > x_max:
+            x = x_max
+        if x < x_min:
+            x = x_min
+        return x
 
-    length = h if (w < h) else w
+    @staticmethod
+    def set_step(loss):
+        if loss < 1e-3:
+            config.translation_step['rotation'] = 12
+            config.translation_step['shear'] = 0.04
+        else:
+            config.translation_step['rotation'] = 6
+            config.translation_step['shear'] = 0.02
 
-    d = length * math.cos(alpha)
-    a = d * math.sin(alpha) / math.sin(delta)
+    def get_paras(self):
+        return self.rotation, self.translate, self.translate_v, self.shear, \
+               self.zoom, self.blur, self.brightness, self.contrast
 
-    y = a * math.cos(gamma)
-    x = y * math.tan(gamma)
+    def flip(self):
+        rotation = self.rotation * -1
+        translate = self.translate * -1
+        translate_v = self.translate_v * -1
+        shear = self.shear * -1
+        zoom = 2 - self.zoom
+        blur = max(config.blur_range) - self.blur
+        brightness = self.brightness * -1
+        contrast = 2 - self.contrast
+        return rotation, translate, translate_v, shear, zoom, blur, brightness, contrast
 
-    return (
-        bb_w - 2 * x,
-        bb_h - 2 * y
-    )
+    def crossover(self, item2, existing_trs, loss):
+        self.set_step(loss)
 
+        mutated_params = []
+        if config.enable_filters:
+            choice = random.sample(range(1, 126), 6)  # 0000001 - 1111110
+        else:
+            choice = random.sample(range(1, 14), 6)   # 0001 - 1110
 
-def crop_around_center(image, width, height):
-    """
-    Given a NumPy / OpenCV 2 image, crops it to the given width and height,
-    around it's centre point
-    """
+        for i in choice:
+            rotation, translate, translate_v, shear, zoom, blur, brightness, contrast = self.get_paras()
+            ids = format(i, '#010b')
+            if ids[-1] == '1':
+                rotation = item2.rotation
+            if ids[-2] == '1':
+                translate = item2.translate
+            if ids[-3] == '1':
+                translate_v = item2.translate_v
+            if ids[-4] == '1':
+                shear = item2.shear
+            if config.enable_filters:
+                if ids[-5] == '1':
+                    brightness = item2.brightness
+                if ids[-6] == '1':
+                    contrast = item2.contrast
+                if ids[-7] == '1':
+                    zoom = item2.zoom
+                # if ids[-7] == '1':
+                #     blur = item2.blur
+            tr = Transformation(rotation, translate, translate_v, shear, zoom, blur, brightness, contrast)
+            if tr in existing_trs:
+                tr = self.mutate_node(tr, existing_trs)
+            existing_trs.append(tr)
+            mutated_params.append(tr)
 
-    image_size = (image.shape[1], image.shape[0])
-    image_center = (int(image_size[0] * 0.5), int(image_size[1] * 0.5))
+        return mutated_params
 
-    if(width > image_size[0]):
-        width = image_size[0]
+    def mutate(self, existing_trs, loss):
+        self.set_step(loss)
 
-    if(height > image_size[1]):
-        height = image_size[1]
+        mutated_params = []
+        for i in range(6):
+            tr = self.mutate_node(self, existing_trs)
+            mutated_params.append(tr)
+            existing_trs.append(tr)
 
-    x1 = int(image_center[0] - width * 0.5)
-    x2 = int(image_center[0] + width * 0.5)
-    y1 = int(image_center[1] - height * 0.5)
-    y2 = int(image_center[1] + height * 0.5)
+        return mutated_params
 
-    return image[y1:y2, x1:x2]
+    def mutate_node(self, cur_tr, existing_trs):
+        for i in range(10):
+            new_tr = self.generate_mutated_node(cur_tr)
+            if new_tr not in existing_trs:
+                return new_tr
+        return cur_tr
 
-def image_zoom(image, param):
-    '''
-    param: 1-2
-    '''
-    res = cv2.resize(image,None,fx=param, fy=param, interpolation = cv2.INTER_LINEAR)
-    res = crop_around_center(res, 32, 32)
-    return res
+    def generate_mutated_node(self, cur_tr):
+        rotation, translate, translate_v, shear, zoom, blur, brightness, contrast = cur_tr.get_paras()
 
-def image_blur(image, params):
-    blur = cv2.blur(image,(params+1,params+1))
-    return blur
+        if config.enable_filters:
+            choice = random.sample(range(0, 7), 4)
+        else:
+            choice = random.sample(range(0, 4), 2)
 
-def image_brightness(image, param):
-    image = np.int16(image)
-    image = image + param
-    image = np.clip(image, 0, 255)
-    image = np.uint8(image)
-    return image
-def image_contrast(image, param):
-    '''
-    param: 0-2
-    '''
-    image = np.int16(image)
-    image = (image-127) * param + 127
-    image = np.clip(image, 0, 255)
-    image = np.uint8(image)
-    return image
+        if 0 in choice:
+            up_down_choice = random.choice([0, 1, 2])
+            if up_down_choice == 0:
+                rotation = self.fit_range(rotation + config.translation_step["rotation"],
+                                          min(config.rotation_range), max(config.rotation_range))
+            elif up_down_choice == 1:
+                rotation = self.fit_range(rotation - config.translation_step["rotation"],
+                                          min(config.rotation_range), max(config.rotation_range))
+            else:
+                rotation *= -1
 
+        if 1 in choice:
+            up_down_choice = random.choice([0, 1, 2])
+            if up_down_choice == 0:
+                translate = self.fit_range(translate + config.translation_step["translate"],
+                                           min(config.translate_range), max(config.translate_range))
+            elif up_down_choice == 1:
+                translate = self.fit_range(translate - config.translation_step["translate"],
+                                           min(config.translate_range), max(config.translate_range))
+            else:
+                translate *= -1
 
-def image_rotation(img, params):
-    rows,cols,ch = img.shape
-    M = cv2.getRotationMatrix2D((cols/2,rows/2),params,1)
-    dst = cv2.warpAffine(img,M,(cols,rows))
-    return dst
+        if 2 in choice:
+            up_down_choice = random.choice([0, 1, 2])
+            if up_down_choice == 0:
+                translate_v = self.fit_range(translate_v + config.translation_step["translate"],
+                                             min(config.translate_range), max(config.translate_range))
+            elif up_down_choice == 1:
+                translate_v = self.fit_range(translate_v - config.translation_step["translate"],
+                                             min(config.translate_range), max(config.translate_range))
+            else:
+                translate_v *= -1
 
+        if 3 in choice:
+            up_down_choice = random.choice([0, 1, 2])
+            if up_down_choice == 0:
+                shear = self.fit_range(shear + config.translation_step["shear"],
+                                       min(config.shear_range), max(config.shear_range))
+            elif up_down_choice == 1:
+                shear = self.fit_range(shear - config.translation_step["shear"],
+                                       min(config.shear_range), max(config.shear_range))
+            else:
+                shear *= -1
 
-def image_translation(img, params):
-    if not isinstance(params, list):
-        params = [params, params]
-    rows, cols, ch = img.shape
+        if config.enable_filters:
+            if 4 in choice:
+                up_down_choice = random.choice([0, 1, 2])
+                if up_down_choice == 0:
+                    brightness = self.fit_range(brightness + config.translation_step["brightness"],
+                                                min(config.brightness_range), max(config.brightness_range))
+                elif up_down_choice == 1:
+                    brightness = self.fit_range(brightness - config.translation_step["brightness"],
+                                                min(config.brightness_range), max(config.brightness_range))
+                else:
+                    brightness *= -1
 
-    M = np.float32([[1, 0, params[0]], [0, 1, 0]])
-    dst = cv2.warpAffine(img, M, (cols, rows))
-    return dst
+            if 5 in choice:
+                up_down_choice = random.choice([0, 1, 2])
+                if up_down_choice == 0:
+                    contrast = self.fit_range(contrast + config.translation_step["contrast"],
+                                              min(config.contrast_range), max(config.contrast_range))
+                elif up_down_choice == 1:
+                    contrast = self.fit_range(contrast - config.translation_step["contrast"],
+                                              min(config.contrast_range), max(config.contrast_range))
+                else:
+                    contrast = 2 - contrast
 
+            if 6 in choice:
+                up_down_choice = random.choice([0, 1, 2])
+                if up_down_choice == 0:
+                    zoom = self.fit_range(zoom + config.translation_step["zoom"],
+                                          min(config.zoom_range), max(config.zoom_range))
+                elif up_down_choice == 1:
+                    zoom = self.fit_range(zoom - config.translation_step["zoom"],
+                                          min(config.zoom_range), max(config.zoom_range))
+                else:
+                    zoom = 2 - zoom
 
-def image_shear(img, params):
-    rows, cols, ch = img.shape
-    factor = params*(-1.0)
-    M = np.float32([[1, factor, 0], [0, 1, 0]])
-    dst = cv2.warpAffine(img, M, (cols, rows))
-    return dst
-
-def save_object(obj, filename):
-    with open(filename, 'wb') as output:
-        pickle.dump(obj, output, pickle.HIGHEST_PROTOCOL)
-
+        return Transformation(rotation, translate, translate_v, shear, zoom, blur, brightness, contrast)

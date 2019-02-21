@@ -1,13 +1,21 @@
-### Improving the Robustness of Neural Network via Optimized Data Augmentation ###
+## Improving the Robustness of Neural Network via Optimized Data Augmentation ##
+
+
+### Introduction ###
 
 ---
 
-#### Introduction ####
-
-#### Installation ####
-*required libraries*
+### Installation ###
+#### required libraries ####
 - Tensorflow
 - Keras
 - Cleverhans
 - opencv-python
-- scikit-learn,skimage,pandas (for GSTRB)
+- imutils
+- scikit-learn,scikit-image,pandas (for GSTRB)
+
+
+### Next step and plan ####
+**only with random perturbation for each image (rotation, translation, shear):**
+
+

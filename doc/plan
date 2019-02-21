@@ -1,0 +1,50 @@
+## Plan
+
+**Week 1 - 09/10**
+Literature review
+
+**Week 2 - 09/17**
+Set environment
+
+**Week 3 - 09/24**
+Original model of GTSRB
+
+**Week 4 - 10/01**
+Reproduce Madry’s results (Replace30, 40 and so on)
+
+**Week 5 - 10/08**
+Implement GA-Loss
+
+**Week 6 - 10/15**
+Try Cifar-10
+
+**Week 7 - 10/22**
+Optimize W-10 and improve GA model
+
+---
+
+**Week 8 - 10/29**
+
+- Write down related work
+- Get 100 misclassified images and  manually investigate the reason
+- Investigate bottom-neck of neural-coverage-based approaches
+- Generate results for Cifar-10
+
+**Week 9 - 11/05**
+
+- Finalize idea
+- Evaluation design
+
+
+**Week 10 - 11/12**
+
+- Run all experinments
+- ImageNet (Coco)?
+
+**Week 11 - 11/19**
+
+**Week 12 - 11/26**
+
+**Week 13 - 12/03**
+
+**Week 14 - 12/10**

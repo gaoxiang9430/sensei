@@ -1,44 +1,298 @@
-'''
+"""
 This program is designed to attach a given models
 Author: Xiang Gao (xiang.gao@us.fujitsu.com)
 Time: Sep, 21, 2018
-'''
+"""
 
-from dataset.gtsrb.train import gtsrb_model
+from dataset.gtsrb.train import GtsrbModel
+from dataset.cifar10.train import Cifar10Model
 from perturbator import Perturbator
+from config import global_config as config
+from util import SAT, SAU, DATASET, logger
 import numpy as np
+import copy
+import argparse
 
-class Attack_Model:
+class AttackModel:
 
     def __init__(self, target=None):
-        self.supported_strategy =  ['random', 'random_150', 'grid']
         self.target = target
 
-    def attack(self, strategy="random", _model=None, print_label=""):
-        x_test, y_test = self.target.load_original_test_data()
-        pt = Perturbator()
-        if strategy == "random":
-            x_test, y_test = pt.random_perturb(x_test, y_test)
-        else:
-            x_test, y_test = pt.fix_perturb(x_test, y_test)
+    @staticmethod
+    def predict(model, x, y):
+        y_predict = model.predict(x)
+        return np.argmax(y_predict, axis=1) == np.argmax(y, axis=1)
 
-        model = target.load_model(_model[0], _model[1])
-        self.target.test_dnn_model(model, self.target.preprocess_original_imgs(x_test), y_test, print_label)
+    def attack(self, strategy=SAT.random, _model=None, print_label=""):
+        x_test, y_test = self.target.load_original_test_data()
+        #x_test, y_test = self.target.load_original_data("train")
+        #x_test = x_test[0:1000]
+        #y_test = y_test[0:1000]
+        model = self.target.load_model(_model[0], _model[1])
+
+        predict_true = self.predict(model, self.target.preprocess_original_imgs(copy.deepcopy(x_test)), y_test)
+
+        pt = Perturbator()
+        if strategy.value == SAT.original.value:
+            self.target.test_dnn_model(model, print_label,
+                                       self.target.preprocess_original_imgs(x_test), y_test)
+        elif strategy.value == SAT.fix.value:
+            x_test, y_test = pt.fix_perturb(x_test, y_test, -30, -3, -0.2, 0.9, 0, -32, 0.8)
+            self.target.test_dnn_model(model, print_label,
+                                       self.target.preprocess_original_imgs(x_test), y_test)
+        elif strategy.value == SAT.random.value:
+            x_test, y_test = pt.random_perturb(x_test, y_test)
+            self.target.test_dnn_model(model, print_label,
+                                       self.target.preprocess_original_imgs(x_test), y_test)
+        elif strategy.value == SAT.random150.value:
+            total_loss = 0
+            total_acc = 0
+            for p1 in range(50):
+                temp_x_test = copy.deepcopy(x_test)
+                x_perturbed_test, y_test = pt.random_perturb(temp_x_test, y_test)
+                loss, acc = self.target.test_dnn_model(model, "Random " + str(p1) + " " + print_label,
+                                                       self.target.preprocess_original_imgs(x_perturbed_test),
+                                                       y_test)
+                total_acc += acc
+                total_loss += loss
+            # calculate the average value of the grid perturbations
+            print(print_label, ' - Test loss:', total_loss/50)
+            print(print_label, ' - Test accuracy:', total_acc/50)
+
+        elif strategy.value == SAT.rotate.value:
+            correct = 0
+            global_acc = 0
+            for i in range(len(x_test)):
+                grid_x_i = []
+                grid_y_i = []
+                for p1 in config.rotation_range:
+                    x_i = copy.deepcopy(x_test[i])
+                    x_i = pt.fix_perturb_img(x_i, p1)
+                    grid_x_i.append(x_i)
+                    grid_y_i.append(y_test[i])
+                # current_perturb = print_label + "_i"
+                current_perturb = "mute"
+                loss, acc = self.target.test_dnn_model(model, current_perturb,
+                                                       self.target.preprocess_original_imgs(grid_x_i),
+                                                       np.array(grid_y_i))
+                del grid_x_i
+                del grid_y_i
+                global_acc += acc
+                if acc == 1:
+                    correct += 1
+                if i % 1000 == 0:
+                    logger.info(print_label + ' - Test accuracy: ' + str(correct / float(i+1)))
+                    logger.info(print_label + ' - Global accuracy: ' + str(global_acc / float(i+1)))
+            logger.info(print_label + ' - Test accuracy: ' + str(correct / float(len(x_test))))
+            logger.info(print_label + ' - Global accuracy: ' + str(global_acc / float(len(x_test))))
+
+        elif strategy.value == SAT.translate.value:
+            correct = 0
+            global_acc = 0
+            for i in range(len(x_test)):
+                grid_x_i = []
+                grid_y_i = []
+                for p2 in config.translate_range:
+                    for p2_v in config.translate_range:
+                        x_i = copy.deepcopy(x_test[i])
+                        x_i = pt.fix_perturb_img(x_i, 0, p2, p2_v)
+                        grid_x_i.append(x_i)
+                        grid_y_i.append(y_test[i])
+                # current_perturb = print_label + "_i"
+                current_perturb = "mute"
+                loss, acc = self.target.test_dnn_model(model, current_perturb,
+                                                       self.target.preprocess_original_imgs(grid_x_i),
+                                                       np.array(grid_y_i))
+                del grid_x_i
+                del grid_y_i
+                global_acc += acc
+                if acc == 1:
+                    correct += 1
+                if i % 1000 == 0:
+                    logger.info(print_label + ' - Test accuracy: ' + str(correct / float(i+1)))
+                    logger.info(print_label + ' - Global accuracy: ' + str(global_acc / float(i+1)))
+            logger.info(print_label + ' - Test accuracy: ' + str(correct / float(len(x_test))))
+            logger.info(print_label + ' - Global accuracy: ' + str(global_acc / float(len(x_test))))
+
+        elif strategy.value == SAT.shear.value:
+            correct = 0
+            global_acc = 0
+            for i in range(len(x_test)):
+                grid_x_i = []
+                grid_y_i = []
+                for p3 in config.shear_range:
+                    x_i = copy.deepcopy(x_test[i])
+                    x_i = pt.fix_perturb_img(x_i, 0, 0, 0, p3)
+                    grid_x_i.append(x_i)
+                    grid_y_i.append(y_test[i])
+                # current_perturb = print_label + "_i"
+                current_perturb = "mute"
+                loss, acc = self.target.test_dnn_model(model, current_perturb,
+                                                       self.target.preprocess_original_imgs(grid_x_i),
+                                                       np.array(grid_y_i))
+                del grid_x_i
+                del grid_y_i
+                global_acc += acc
+                if acc == 1:
+                    correct += 1
+                if i % 1000 == 0:
+                    logger.info(print_label + ' - Test accuracy: ' + str(correct / float(i+1)))
+                    logger.info(print_label + ' - Global accuracy: ' + str(global_acc / float(i+1)))
+            logger.info(print_label + ' - Test accuracy: ' + str(correct / float(len(x_test))))
+            logger.info(print_label + ' - Global accuracy: ' + str(global_acc / float(len(x_test))))
+
+        elif strategy.value == SAT.grid1.value:
+            correct = 0
+            for i in range(len(x_test)):
+                is_correct = True
+                for p1 in config.rotation_range[::30]:
+                    for p2 in config.translate_range[::3]:
+                        for p2_v in config.translate_range[::3]:
+                            for p3 in config.shear_range[::20]:
+                                if config.enable_filters:
+                                    for p4 in config.zoom_range[::10]:
+                                        for p5 in config.blur_range[::1]:
+                                            for p6 in config.brightness_range[::16]:
+                                                for p7 in config.contrast_range[::8]:
+                                                    x_i = copy.deepcopy(x_test[i])
+                                                    x_i = pt.fix_perturb_img(x_i, p1, p2, p2_v, p3, p4, p5, p6, p7)
+                                                    loss, acc = self.target.test_dnn_model(
+                                                                model, "mute",
+                                                                self.target.preprocess_original_imgs([x_i]),
+                                                                np.array([y_test[i]]))
+                                                    if acc != 1:
+                                                        print(p1, p2, p2_v, p3, p4, p5, p6, p7)
+                                                        is_correct = False
+                                else:
+                                    x_i = copy.deepcopy(x_test[i])
+                                    x_i = pt.fix_perturb_img(x_i, p1, p2, p2_v, p3)
+                                    loss, acc = self.target.test_dnn_model(model, "mute",
+                                                                           self.target.preprocess_original_imgs([x_i]),
+                                                                           np.array([y_test[i]]))
+                                    if acc != 1:
+                                        print(p1, p2, p2_v, p3)
+                                        is_correct = False
+                if not is_correct:
+                    correct += 1
+                print("============= "+str(i)+" ===============")
+            print("accuracy is " + str(float(correct)/len(x_test)))
+
+        elif strategy.value == SAT.grid2.value:
+            correct = 0
+            incorrect = 0
+            incorrect_node = 0
+            global_acc = 0
+            for i in range(len(x_test)):
+                grid_x_i = []
+                grid_y_i = []
+                total_pert = 0
+                for p1 in config.rotation_range[::30]:
+                    for p2 in config.translate_range[::3]:
+                        for p2_v in config.translate_range[::3]:
+                            for p3 in config.shear_range[::20]:
+                    # for p1 in config.rotation_range[::6]:
+                    #     for p2 in config.translate_range[::2]:
+                    #         for p3 in config.shear_range[::4]:
+                                if config.enable_filters:
+                                    for p4 in config.zoom_range[::10]:
+                                        for p5 in config.blur_range[::1]:
+                                            for p6 in config.brightness_range[::16]:
+                                                for p7 in config.contrast_range[::8]:
+                                                    x_i = copy.deepcopy(x_test[i])
+                                                    x_i = pt.fix_perturb_img(x_i, p1, p2, p2_v, p3, p4, p5, p6, p7)
+                                                    grid_x_i.append(x_i)
+                                                    grid_y_i.append(y_test[i])
+                                                    total_pert += 1
+                                else:
+                                    x_i = copy.deepcopy(x_test[i])
+                                    x_i = pt.fix_perturb_img(x_i, p1, p2, p2_v, p3)
+                                    grid_x_i.append(x_i)
+                                    grid_y_i.append(y_test[i])
+                                    total_pert += 1
+                # current_perturb = print_label + "_i"
+                current_perturb = "mute"
+                loss, acc = self.target.test_dnn_model(model, current_perturb,
+                                                       self.target.preprocess_original_imgs(grid_x_i),
+                                                       np.array(grid_y_i))
+                del grid_x_i
+                del grid_y_i
+                global_acc += acc
+                if acc == 1:
+                    correct += 1
+                else:
+                    incorrect += 1
+                    incorrect_node += (1-acc)*total_pert
+                if i % 1000 == 0:
+                    logger.info(print_label + ' - Test accuracy: ' + str(correct / float(i+1)))
+                    if incorrect != 0:
+                        logger.info(print_label+' - average number of failed perturbation for each misclassified image:'
+                                    + str(incorrect_node / float(i+1)))
+                    logger.info(print_label + ' - Global accuracy: ' + str(global_acc / float(i+1)))
+            logger.info(print_label + ' - Test accuracy: ' + str(correct / float(len(x_test))))
+            logger.info(print_label + ' - Global accuracy: ' + str(global_acc / float(len(x_test))))
+            if incorrect != 0:
+                logger.info(print_label + ' - average number of failed perturbation for each misclassified image: '
+                            + str(incorrect_node / float(i+1)))
+
+        else:
+            raise Exception("Unsupported attack strategy")
+
 
 if __name__ == '__main__':
-    target = gtsrb_model(source_dir='GTSRB')
-    #_model = [0, "models/gtsrb.oxford.model0.hdf5"]
-    _model = [0, "models/gtsrb.oxford.model.hdf5"]
-    _model30 = [0, "models/gtsrb.oxford.replace30_model.hdf5"]
-    _model40 = [0, "models/gtsrb.oxford.replace40_model.hdf5"]
 
-    am = Attack_Model(target)
-    am.attack('fix', _model, "fix(15) attack original oxford model")
-    am.attack("random", _model, "random attack original oxford model")
+    parser = argparse.ArgumentParser(description='Augmented Training.')
+    parser.add_argument('--strategy', dest='strategy', type=str, nargs='+',
+                        help='augmentation strategy, supported strategy:' + str(SAU.list()))
+    parser.add_argument('--dataset', dest='dataset', type=str, nargs='+',
+                        help='the name of dataset, support dataset:' + str(DATASET.list()))
+    # TODO: attack strategy
 
-    am.attack('fix', _model30, "fix(15) attack replace30 oxford model")
-    am.attack("random", _model30, "random attack replace30 oxford model")
+    args = parser.parse_args()
+    if len(args.strategy) <= 0 or len(args.dataset) <= 0:
+        logger.error(parser)
+        exit(1)
 
-    am.attack('fix', _model40, "fix(15) attack replace40 oxford model")
-    am.attack("random", _model40, "random attack replace40 oxford model")
+    # augmentation strategy
+    aug_strategy = args.strategy[0]
+    if aug_strategy not in SAU.list():
+        print("unsupported strategy, please use --help to find supported ones")
+        exit(1)
+    # target dataset
+    dataset = args.dataset[0]
+    if dataset not in DATASET.list():
+        print("unsupported dataset, please use --help to find supported ones")
+        exit(1)
 
+    # initialize dataset
+    dat = DATASET.get_name(dataset)
+    if dat.value == DATASET.gtsrb.value:
+        target0 = GtsrbModel(source_dir='GTSRB')
+    elif dat.value == DATASET.cifar10.value:
+        target0 = Cifar10Model()
+    else:
+        raise Exception('unsupported dataset', dataset)
+
+    logger.info("=========== attack " + aug_strategy + " of "
+                + dataset + " dataset ===========")
+
+    am = AttackModel(target=target0)
+
+    _model_file = "models/" + dataset + aug_strategy + "_model_" + \
+                  str(config.enable_filters) + ".hdf5"
+    _model0 = [0, _model_file]
+
+    print("===================== test " + aug_strategy + " =====================")
+    am.attack(SAT.original, _model0, "original dataset "+aug_strategy+" oxford model")
+    am.attack(SAT.random, _model0, "random attack " + aug_strategy + " oxford model")
+
+    print("\n===================== rotate =====================")
+    am.attack(SAT.rotate, _model0, "rotate attack " + aug_strategy + " oxford model")
+
+    print("\n===================== translate =====================")
+    am.attack(SAT.translate, _model0, "translate attack " + aug_strategy + " oxford model")
+
+    print("\n===================== shear =====================")
+    am.attack(SAT.shear, _model0, "shear attack " + aug_strategy + " oxford model")
+
+    print("\n===================== grid =====================")
+    am.attack(SAT.grid2, _model0, "grid attack " + aug_strategy + " oxford model")
