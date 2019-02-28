@@ -8,6 +8,7 @@ dataset/imagenet/tensorpack
 dataset/imagenet/backup
 dataset/imagenet/devkit
 dataset/imagenet/extract*
-experiment_data/
+deepaugment/execution*
+experiment_data*
 *.pyc
 temp

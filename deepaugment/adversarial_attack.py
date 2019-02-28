@@ -25,12 +25,10 @@ class AttackModel:
 
     def attack(self, strategy=SAT.random, _model=None, print_label=""):
         x_test, y_test = self.target.load_original_test_data()
-        #x_test, y_test = self.target.load_original_data("train")
-        #x_test = x_test[0:1000]
-        #y_test = y_test[0:1000]
+        # x_test, y_test = self.target.load_original_data("train")
+        # x_test = x_test[0:1000]
+        # y_test = y_test[0:1000]
         model = self.target.load_model(_model[0], _model[1])
-
-        predict_true = self.predict(model, self.target.preprocess_original_imgs(copy.deepcopy(x_test)), y_test)
 
         pt = Perturbator()
         if strategy.value == SAT.original.value:
@@ -284,7 +282,7 @@ if __name__ == '__main__':
     print("===================== test " + aug_strategy + " =====================")
     am.attack(SAT.original, _model0, "original dataset "+aug_strategy+" oxford model")
     am.attack(SAT.random, _model0, "random attack " + aug_strategy + " oxford model")
-
+    '''
     print("\n===================== rotate =====================")
     am.attack(SAT.rotate, _model0, "rotate attack " + aug_strategy + " oxford model")
 
@@ -293,6 +291,7 @@ if __name__ == '__main__':
 
     print("\n===================== shear =====================")
     am.attack(SAT.shear, _model0, "shear attack " + aug_strategy + " oxford model")
-
+    '''
     print("\n===================== grid =====================")
     am.attack(SAT.grid2, _model0, "grid attack " + aug_strategy + " oxford model")
+

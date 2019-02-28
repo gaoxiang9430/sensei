@@ -83,12 +83,12 @@ class GASelect:
         for i in range(len(temp_x_original_train)):
             label = np.argmax(y_train[i])
             q = list()
-            q.append(Item(Transformation(), temp_x_original_train[i], 0))
+            q.append(Item(Transformation(), temp_x_original_train[i], 1)) # initialize loss as 1
             for j in range(9):
                 img = copy.deepcopy(temp_x_original_train[i])
                 tr = self.gt.get_next_transformation(label)
                 mutated_img = self.pt.fix_perturb_img(img, *(tr.get_paras()))
-                q.append(Item(tr, mutated_img, 0))
+                q.append(Item(tr, mutated_img, 1))
             #     angle = random.choice(config.rotation_range)
             #     translation = random.choice(config.translate_range)
             #     shear = random.choice(config.shear_range)
@@ -123,56 +123,59 @@ class GASelect:
             return self.crossover(start, end)
 
     def mutate(self, start=0, end=-1):
+        is_robust = []
         logger.debug("Using mutate operators")
         for i in range(start, end):
             q = self.queue_set[i]
             top_item = q[0]
-            # q.remove(top_item)
-            # if top_item.loss < 1e-3:
-            #     del q[1:]
-            #     for j in range(self.queue_len-1):
-            #         img = copy.deepcopy(self.x_train[i])
-            #         tr = self.gt.get_next_transformation(np.argmax(self.y_train[i]))
-            #         mutated_img = self.pt.fix_perturb_img(img, *(tr.get_paras()))
-            #         q.append(Item(tr, mutated_img, 0))
-            # else:
+
+            # already robust enough
+            if config.enable_optimize and top_item.loss < 1e-4:
+                for j in range(6):
+                    q.append(top_item)
+                is_robust.append(True)
+                continue
+            is_robust.append(False)
+
             existing_trs = list(item.transformation_para for item in q)
             mutates = top_item.transformation_para.mutate(existing_trs, top_item.loss)
-            q.remove(top_item)
+            #q.remove(top_item)
             for j in range(len(mutates)):
                 img = copy.deepcopy(self.x_train[i])
                 mutated_img = self.pt.fix_perturb_img(img, *(mutates[j].get_paras()))
-                q.append(Item(mutates[j], mutated_img, 0))
+                q.append(Item(mutates[j], mutated_img, 1))
             # q.append(Item(Transformation(), copy.deepcopy(self.x_train[i]), 0))
-        return self.get_all_data(start, end)
+        return is_robust, self.get_all_data(start, end)
 
     def crossover(self, start=0, end=-1):
+        is_robust = []
         logger.debug("Using crossover operators")
         for i in range(start, end):
             q = self.queue_set[i]
             if len(q) < 2:
                 return self.mutate()
             top_item = q[0]
-            # if top_item.loss < 1e-3:
-            #     del q[1:]
-            #     for j in range(self.queue_len-1):
-            #         img = copy.deepcopy(self.x_train[i])
-            #         tr = self.gt.get_next_transformation(np.argmax(self.y_train[i]))
-            #         mutated_img = self.pt.fix_perturb_img(img, *(tr.get_paras()))
-            #         q.append(Item(tr, mutated_img, 0))
-            # else:
+
+            # already robust enough
+            if config.enable_optimize and top_item.loss < 1e-4:
+                for j in range(6):
+                    q.append(top_item)
+                is_robust.append(True)
+                continue
+            is_robust.append(False)
+
             top_item_2 = self.select_item(top_item, q[1:6])  # q[1]
             # q.remove(top_item)
             existing_trs = list(item.transformation_para for item in q)
             mutates = top_item.transformation_para.crossover(top_item_2.transformation_para, existing_trs,
                                                              top_item.loss)
-            q.remove(top_item)
+            # q.remove(top_item)
             for j in range(len(mutates)):
                 img = copy.deepcopy(self.x_train[i])
                 mutated_img = self.pt.fix_perturb_img(img, *(mutates[j].get_paras()))
-                q.append(Item(mutates[j], mutated_img, 0))
+                q.append(Item(mutates[j], mutated_img, 1))
             # q.append(Item(Transformation(), copy.deepcopy(self.x_train[i]), 0))
-        return self.get_all_data(start, end)
+        return is_robust, self.get_all_data(start, end)
 
     def get_all_data(self, start=0, end=-1):
         ret = []

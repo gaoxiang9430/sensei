@@ -9,7 +9,6 @@ import random
 from config import global_config as config
 from libs.spacial_transformation import *
 
-
 class Perturbator:
     def __init__(self):
         self.rotation_range = config.rotation_range

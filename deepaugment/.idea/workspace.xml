@@ -1,0 +1,753 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="1caf829a-24a5-41f6-9b7b-e5c5e971150b" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/dataset/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/gtsrb/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/dataset/gtsrb/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/gtsrb/gtsrb_pillar_well_classifier_3.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/gtsrb/gtsrb_train_with_aug.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset/gtsrb/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/dataset/gtsrb/train.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deepaugment/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/deepaugment/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deepaugment/adversarial_attack.py" beforeDir="false" afterPath="$PROJECT_DIR$/deepaugment/adversarial_attack.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deepaugment/augmented_training.py" beforeDir="false" afterPath="$PROJECT_DIR$/deepaugment/augmented_training.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deepaugment/augmentor.py" beforeDir="false" afterPath="$PROJECT_DIR$/deepaugment/augmentor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deepaugment/perturbator.py" beforeDir="false" afterPath="$PROJECT_DIR$/deepaugment/perturbator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deepaugment/transformation.py" beforeDir="false" afterPath="$PROJECT_DIR$/libs/spacial_transformation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/libs/spacial_tranformation.py" beforeDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CreatePatchCommitExecutor">
+    <option name="PATCH_PATH" value="" />
+  </component>
+  <component name="FavoritesManager">
+    <favorites_list name="deepaugment" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/deepaugment/config.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="72">
+              <caret line="5" column="4" selection-start-line="5" selection-start-column="4" selection-end-line="5" selection-end-column="4" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/deepaugment/ga_selector.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="983">
+              <caret line="180" selection-start-line="180" selection-end-line="185" selection-end-column="28" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/deepaugment/data_generator.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1037">
+              <caret line="335" column="24" selection-start-line="335" selection-start-column="24" selection-end-line="335" selection-end-column="24" />
+              <folding>
+                <element signature="e#2063#2269#0" />
+                <element signature="e#4827#9617#0" />
+                <element signature="e#9680#11279#0" />
+                <element signature="e#12976#14175#0" />
+                <element signature="e#14252#15943#0" />
+                <element signature="e#16021#17652#0" />
+                <element signature="e#17715#18711#0" />
+                <element signature="e#20803#21923#0" />
+                <element signature="e#21994#23291#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Jupyter Notebook" />
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>lear</find>
+      <find>LearningRateScheduler</find>
+      <find>schedule</find>
+      <find>x_train</find>
+      <find>learning_</find>
+      <find>preprocess</find>
+      <find>flip</find>
+      <find>Adam</find>
+      <find>batch_size</find>
+      <find>Cifar</find>
+      <find>input_shape</find>
+      <find>Generation Done!!!</find>
+      <find>queue</find>
+      <find>predict(</find>
+      <find>min_o</find>
+      <find>shape</find>
+      <find>generate_cov_for_class</find>
+      <find>enable_filters</find>
+      <find>shear</find>
+      <find>translation</find>
+      <find>fix_</find>
+      <find>pt.fix_pert</find>
+      <find>tr.translate</find>
+      <find>fix_perturb_img</find>
+      <find>rotation</find>
+      <find>shuffle</find>
+      <find>channels_first</find>
+      <find>unsupported strategy</find>
+      <find>channel</find>
+      <find>op</find>
+    </findStrings>
+    <replaceStrings>
+      <replace>va</replace>
+      <replace>x_original</replace>
+      <replace>augmented</replace>
+      <replace>min(rotation_range), max(rotation_range)</replace>
+      <replace>logger.info</replace>
+      <replace>x2</replace>
+      <replace />
+      <replace>max(config.</replace>
+      <replace>config.pool</replace>
+      <replace>config</replace>
+      <replace>value</replace>
+    </replaceStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/deepaugment/predictor.py" />
+        <option value="$PROJECT_DIR$/deepaugment/global.py" />
+        <option value="$PROJECT_DIR$/deepaugment/data_seclector.py" />
+        <option value="$PROJECT_DIR$/deepaugment/data_selector.py" />
+        <option value="$PROJECT_DIR$/deepaugment/data_provider.py" />
+        <option value="$PROJECT_DIR$/temp/gradient_test.py" />
+        <option value="$PROJECT_DIR$/temp/test.py" />
+        <option value="$PROJECT_DIR$/temp/predict_test.py" />
+        <option value="$PROJECT_DIR$/deepaugment/translation.py" />
+        <option value="$PROJECT_DIR$/temp/loss_test.py" />
+        <option value="$PROJECT_DIR$/.gitignore" />
+        <option value="$PROJECT_DIR$/test/loss_coverage_corrcoef.py" />
+        <option value="$PROJECT_DIR$/temp/queue_test.py" />
+        <option value="$PROJECT_DIR$/temp/layer_output.py.ipynb" />
+        <option value="$PROJECT_DIR$/temp/layer_output.py" />
+        <option value="$PROJECT_DIR$/temp/image_transformation.py" />
+        <option value="$PROJECT_DIR$/test/perturbation_test.py" />
+        <option value="$PROJECT_DIR$/temp/temp.py" />
+        <option value="$PROJECT_DIR$/temp/plot_rand_mp.py" />
+        <option value="$PROJECT_DIR$/temp/arg_parser.py" />
+        <option value="$PROJECT_DIR$/deepaugment/temp.py" />
+        <option value="$PROJECT_DIR$/test/investigate_cifar_error.py" />
+        <option value="$PROJECT_DIR$/temp/plot.py" />
+        <option value="$PROJECT_DIR$/dataset/cifar10/models/train2.py" />
+        <option value="$PROJECT_DIR$/dataset/cifar10/train2.py" />
+        <option value="$PROJECT_DIR$/dataset/cifar10/train_new_resnet.py" />
+        <option value="$PROJECT_DIR$/test/neural_cov_test.py" />
+        <option value="$PROJECT_DIR$/dataset/cifar10/train_vgg.py" />
+        <option value="$PROJECT_DIR$/deepaugment/ga_selector_O1.py" />
+        <option value="$PROJECT_DIR$/dataset/cifar10/train_resnet.py" />
+        <option value="$PROJECT_DIR$/dataset/cifar10/resnet.py" />
+        <option value="$PROJECT_DIR$/deepaugment/augmented_training.py" />
+        <option value="$PROJECT_DIR$/deepaugment/neural_coverage.py" />
+        <option value="$PROJECT_DIR$/deepaugment/util.py" />
+        <option value="$PROJECT_DIR$/test/tranformation_test.py" />
+        <option value="$PROJECT_DIR$/libs/spacial_transformation.py" />
+        <option value="$PROJECT_DIR$/deepaugment/perturbator.py" />
+        <option value="$PROJECT_DIR$/test/transformation_test.py" />
+        <option value="$PROJECT_DIR$/deepaugment/transformation2.py" />
+        <option value="$PROJECT_DIR$/dataset/gtsrb/new_train.py" />
+        <option value="$PROJECT_DIR$/dataset/gtsrb/train.py" />
+        <option value="$PROJECT_DIR$/deepaugment/config.py" />
+        <option value="$PROJECT_DIR$/deepaugment/adversarial_attack.py" />
+        <option value="$PROJECT_DIR$/deepaugment/transformation.py" />
+        <option value="$PROJECT_DIR$/test/investigate_error.py" />
+        <option value="$PROJECT_DIR$/test/distribution.py" />
+        <option value="$PROJECT_DIR$/dataset/cifar10/train.py" />
+        <option value="$PROJECT_DIR$/deepaugment/augmentor.py" />
+        <option value="$PROJECT_DIR$/deepaugment/ga_selector.py" />
+        <option value="$PROJECT_DIR$/deepaugment/data_generator.py" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="167" />
+    <option name="y" value="253" />
+    <option name="width" value="864" />
+    <option name="height" value="777" />
+  </component>
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="deepaugment" type="b2602c69:ProjectViewProjectNode" />
+              <item name="deepaugment" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="deepaugment" type="b2602c69:ProjectViewProjectNode" />
+              <item name="deepaugment" type="462c0819:PsiDirectoryNode" />
+              <item name="deepaugment" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file:///var/home/lxigao/workspace/tensorflow/deepaugment/dataset/gtsrb/train.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/dataset/cifar10" />
+      <recent name="$PROJECT_DIR$/libs" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Python.queue_test">
+    <configuration default="true" type="tests" factoryName="Attests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="deepaugment" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method />
+    </configuration>
+    <configuration name="config" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="deepaugment" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/deepaugment" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/deepaugment/config.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="queue_test" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="deepaugment" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/temp" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/temp/queue_test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="temp" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="deepaugment" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/temp" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/temp/temp.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="transformation" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="deepaugment" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/deepaugment" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/deepaugment/transformation.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="util" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="deepaugment" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/deepaugment" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/deepaugment/util.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.temp" />
+      <item itemvalue="Python.config" />
+      <item itemvalue="Python.util" />
+      <item itemvalue="Python.transformation" />
+      <item itemvalue="Python.queue_test" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.queue_test" />
+        <item itemvalue="Python.transformation" />
+        <item itemvalue="Python.util" />
+        <item itemvalue="Python.config" />
+        <item itemvalue="Python.temp" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="1caf829a-24a5-41f6-9b7b-e5c5e971150b" name="Default" comment="" />
+      <created>1537990839572</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1537990839572</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="0" y="-1" width="1080" height="1921" extended-state="6" />
+    <editor active="true" />
+    <layout>
+      <window_info id="Favorites" order="0" sideWeight="0.507997" side_tool="true" weight="0.15" />
+      <window_info active="true" content_ui="combo" id="Project" order="1" sideWeight="0.49200305" visible="true" weight="0.16083254" />
+      <window_info id="Structure" order="2" weight="0.25" />
+      <window_info anchor="bottom" id="Event Log" order="0" sideWeight="0.5015625" side_tool="true" weight="0.32978722" />
+      <window_info anchor="bottom" id="Version Control" order="1" />
+      <window_info anchor="bottom" id="Python Console" order="2" />
+      <window_info anchor="bottom" id="Terminal" order="3" />
+      <window_info anchor="bottom" id="Message" order="4" />
+      <window_info anchor="bottom" id="Find" order="5" weight="0.32967636" />
+      <window_info anchor="bottom" id="Run" order="6" sideWeight="0.4984375" weight="0.32901752" />
+      <window_info anchor="bottom" id="Debug" order="7" weight="0.3998903" />
+      <window_info anchor="bottom" id="Cvs" order="8" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="9" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="10" weight="0.32977912" />
+      <window_info anchor="right" id="Commander" order="0" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+    </layout>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/deepaugment/neural_coverage.py</url>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/test/neural_cov_test.py</url>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/dataset/cifar10/train_vgg.py</url>
+          <line>4</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/deepaugment/data_provider.py" />
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="36">
+          <caret line="2" column="15" selection-start-line="2" selection-start-column="15" selection-end-line="2" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/lib/python2.7/dist-packages/keras/utils/data_utils.py" />
+    <entry file="file://$USER_HOME$/.PyCharmCE2016.3/system/python_stubs/-1247972723/cv2/__init__.py" />
+    <entry file="file://$PROJECT_DIR$/temp/layer_output.py.ipynb" />
+    <entry file="file://$PROJECT_DIR$/temp/loss_test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="342">
+          <caret line="26" selection-start-line="26" selection-end-line="26" selection-end-column="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/temp/layer_output.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="864">
+          <caret line="48" selection-start-line="48" selection-end-line="48" selection-end-column="56" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/lib/python2.7/dist-packages/keras/preprocessing/image.py" />
+    <entry file="file:///usr/local/lib/python2.7/dist-packages/keras_preprocessing/__init__.py" />
+    <entry file="file://$PROJECT_DIR$/temp/image_transformation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="432">
+          <caret line="24" column="4" selection-start-line="24" selection-start-column="4" selection-end-line="24" selection-end-column="48" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deepaugment/ga_selector_back.py" />
+    <entry file="file://$PROJECT_DIR$/temp/temp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="20" lean-forward="true" selection-start-line="20" selection-end-line="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/temp/plot_rand_mp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1180">
+          <caret line="80" column="13" lean-forward="true" selection-start-line="80" selection-start-column="13" selection-end-line="80" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/temp/arg_parser.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="288">
+          <caret line="16" selection-start-line="16" selection-end-line="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deepaugment/temp.py" />
+    <entry file="file:///usr/lib/python2.7/logging/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="428">
+          <caret line="128" selection-start-line="128" selection-end-line="128" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/lib/python2.7/dist-packages/keras/losses.py" />
+    <entry file="file://$PROJECT_DIR$/test/loss_coverage_corrcoef.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="864">
+          <caret line="54" column="39" selection-start-line="54" selection-start-column="39" selection-end-line="54" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/temp/queue_test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="378">
+          <caret line="21" lean-forward="true" selection-start-line="21" selection-end-line="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/temp/plot.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="5" lean-forward="true" selection-start-line="5" selection-end-line="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/interplote.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1080">
+          <caret line="60" column="11" lean-forward="true" selection-start-line="60" selection-start-column="11" selection-end-line="60" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dataset/cifar10/train2.py" />
+    <entry file="file://$PROJECT_DIR$/deepaugment/ga_selector_backup.py" />
+    <entry file="file://$PROJECT_DIR$/dataset/cifar10/train_vgg.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="673">
+          <caret line="213" selection-start-line="213" selection-end-line="215" selection-end-column="20" />
+          <folding>
+            <element signature="e#40#77#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dataset/cifar10/train_new_resnet.py" />
+    <entry file="file:///usr/local/lib/python2.7/dist-packages/keras/backend/__init__.py" />
+    <entry file="file://$PROJECT_DIR$/deepaugment/util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="617">
+          <caret line="45" column="13" selection-start-line="45" selection-start-column="12" selection-end-line="45" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deepaugment/neural_coverage.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="288">
+          <caret line="16" selection-start-line="16" selection-end-line="16" />
+          <folding>
+            <element signature="e#0#48#0" />
+            <element signature="e#2404#2612#0" />
+            <element signature="e#2665#3065#0" />
+            <element signature="e#3144#3450#0" />
+            <element signature="e#3489#3577#0" />
+            <element signature="e#3617#3659#0" />
+            <element signature="e#3710#4249#0" />
+            <element signature="e#4294#5071#0" />
+            <element signature="e#4294#4354#0" />
+            <element signature="e#5200#5957#0" />
+            <element signature="e#6021#6915#0" />
+            <element signature="e#6966#8039#0" />
+            <element signature="e#9432#9624#0" />
+            <element signature="e#9671#10016#0" />
+            <element signature="e#10069#10165#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dataset/cifar10/resnet.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1242">
+          <caret line="23" column="11" lean-forward="true" selection-start-line="23" selection-start-column="11" selection-end-line="23" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/libs/spacial_transformation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="594">
+          <caret line="39" column="11" lean-forward="true" selection-start-line="39" selection-start-column="11" selection-end-line="39" selection-end-column="11" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deepaugment/perturbator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="617">
+          <caret line="62" column="40" selection-start-line="62" selection-start-column="40" selection-end-line="62" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deepaugment/transformation2.py" />
+    <entry file="file://$PROJECT_DIR$/deepaugment/transformation_backup.py" />
+    <entry file="file://$PROJECT_DIR$/dataset/gtsrb/new_train.py" />
+    <entry file="file://$PROJECT_DIR$/test/neural_cov_test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="540">
+          <caret line="76" lean-forward="true" selection-start-line="76" selection-end-line="76" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/tranformation_test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-414">
+          <caret line="34" column="14" lean-forward="true" selection-start-line="34" selection-start-column="14" selection-end-line="34" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/transformation_test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="576">
+          <caret line="33" lean-forward="true" selection-start-line="33" selection-end-line="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/perturbation_test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="558">
+          <caret line="36" selection-start-line="36" selection-end-line="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deepaugment/adversarial_attack.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="891">
+          <caret line="195" column="57" lean-forward="true" selection-start-line="195" selection-start-column="57" selection-end-line="195" selection-end-column="57" />
+          <folding>
+            <element signature="e#124#166#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deepaugment/transformation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="545">
+          <caret line="178" column="33" lean-forward="true" selection-start-line="178" selection-start-column="33" selection-end-line="178" selection-end-column="33" />
+          <folding>
+            <element signature="e#0#42#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/investigate_cifar_error.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="977">
+          <caret line="96" column="36" lean-forward="true" selection-start-line="96" selection-start-column="36" selection-end-line="96" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dataset/gtsrb/train.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="579">
+          <caret line="231" column="40" selection-start-line="231" selection-start-column="33" selection-end-line="231" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/distribution.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="841">
+          <caret line="146" column="5" lean-forward="true" selection-start-line="146" selection-start-column="5" selection-end-line="148" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/investigate_error.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="455">
+          <caret line="93" column="38" selection-start-line="93" selection-start-column="38" selection-end-line="93" selection-end-column="38" />
+          <folding>
+            <element signature="e#0#42#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dataset/cifar10/train.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1062">
+          <caret line="79" lean-forward="true" selection-start-line="79" selection-end-line="79" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deepaugment/augmented_training.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="846">
+          <caret line="51" lean-forward="true" selection-start-line="51" selection-end-line="51" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deepaugment/ga_selector.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="983">
+          <caret line="180" selection-start-line="180" selection-end-line="185" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deepaugment/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="72">
+          <caret line="5" column="4" selection-start-line="5" selection-start-column="4" selection-end-line="5" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deepaugment/augmentor.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1110">
+          <caret line="76" column="47" selection-start-line="76" selection-start-column="47" selection-end-line="76" selection-end-column="47" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/deepaugment/data_generator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1037">
+          <caret line="335" column="24" selection-start-line="335" selection-start-column="24" selection-end-line="335" selection-end-column="24" />
+          <folding>
+            <element signature="e#2063#2269#0" />
+            <element signature="e#4827#9617#0" />
+            <element signature="e#9680#11279#0" />
+            <element signature="e#12976#14175#0" />
+            <element signature="e#14252#15943#0" />
+            <element signature="e#16021#17652#0" />
+            <element signature="e#17715#18711#0" />
+            <element signature="e#20803#21923#0" />
+            <element signature="e#21994#23291#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>

@@ -74,7 +74,7 @@ class Augmenter:
             for i in length:
                 img = copy.deepcopy(x[i])
                 x_i_10.append(self.pt.random_perturb_image(img))
-            x_10.append(x_i_10)
+            x_10.append(x_i_10) #num_peturb * n
         return x_10, y
 
     def grid(self, x=None, y=None):

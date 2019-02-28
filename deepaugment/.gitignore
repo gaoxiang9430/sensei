@@ -1,0 +1,5 @@
+dataset/gtsrb/GTSRB/
+dataset/gtsrb/models
+dataset/cifar10/models
+*.pyc
+temp

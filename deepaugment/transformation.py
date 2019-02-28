@@ -143,7 +143,7 @@ class Transformation:
             else:
                 rotation *= -1
 
-        if 1 in choice:
+        if 1 in choice or config.enable_optimize:
             up_down_choice = random.choice([0, 1, 2])
             if up_down_choice == 0:
                 translate = self.fit_range(translate + config.translation_step["translate"],
@@ -154,7 +154,7 @@ class Transformation:
             else:
                 translate *= -1
 
-        if 2 in choice:
+        if 2 in choice or config.enable_optimize:
             up_down_choice = random.choice([0, 1, 2])
             if up_down_choice == 0:
                 translate_v = self.fit_range(translate_v + config.translation_step["translate"],

@@ -28,7 +28,7 @@ class ExperimentalConfig:
     translation_step = {"rotation": 6, "translate": 1, "shear": 0.02, "zoom": 0.02,
                         "blur": 1, "brightness": 4, "contrast": 0.05}
 
-    enable_optimize = False
+    enable_optimize = True
     epoch_level_augment = False
 
     def __init__(self):

@@ -10,7 +10,7 @@ run_gtsrb ()
     python adversarial_attack.py --strategy $1 --dataset gtsrb &>> execution_$1.out
 }
 
-run_gtsrb original
+#run_gtsrb original
 #run_gtsrb replace30
 #run_gtsrb replace40
 #run_gtsrb replace_worst_of_10_cov
@@ -27,6 +27,6 @@ run_cifar ()
     python adversarial_attack.py --strategy $1 --dataset cifar10 &>> execution_cifar_$1.out
 }
 
-#run_cifar original
-#run_cifar replace30
-#run_cifar replace40
+run_cifar original
+run_cifar replace30
+run_cifar replace40
