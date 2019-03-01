@@ -14,11 +14,10 @@ run_gtsrb ()
 #run_gtsrb replace30
 #run_gtsrb replace40
 #run_gtsrb replace_worst_of_10
-run_gtsrb ga_loss
+#run_gtsrb ga_loss
 
 run_cifar ()
 {
-    rm -rf execution_cifar_$1.out
     interval=50
     for i in $(seq 0 $interval 199)
     do
@@ -31,3 +30,4 @@ run_cifar ()
 #run_cifar replace30
 #run_cifar replace40
 #run_cifar replace_worst_of_10
+run_cifar ga_loss

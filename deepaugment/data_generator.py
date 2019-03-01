@@ -51,6 +51,7 @@ class DataGenerator(keras.utils.Sequence):
             self.nc = NeuralCoverage(model)
         elif self.strategy.value == SAU.replace_worst_of_10.value and config.enable_optimize:
             self.is_robust = [False] * len(x_original_train)
+            self.prev_is_robust = [False] * len(x_original_train)
 
         self.index = 0
         self.total_time = 0
@@ -58,24 +59,14 @@ class DataGenerator(keras.utils.Sequence):
         if config.enable_optimize:
             self.current_indices = range(len(x_original_train))
 
-    def performance(self, model, md, x, y):
-        pt = Perturbator()
-        with self.graph.as_default():
-            x_augs, y = self.au.worst_of_10(copy.deepcopy(x), y)
-            y = y*10
-            x_augs = md.preprocess_original_imgs(x_augs)
-            start_time = time.time()
-            y_predict = model.predict(x_augs)
-            print("prediction time:", time.time() - start_time)
+    def cross_entropy(self, predictions, targets):
+        ce = -np.sum(targets*np.log(predictions)+(1-targets)*np.log(1-predictions), axis=1)
+        return ce
 
     def __len__(self):
         logger.info("size of batch: " + str(int(np.ceil(len(self.x_train) / self.batch_size))))
         """Denotes the number of batches per epoch"""
         return int(np.ceil(len(self.x_train) / self.batch_size))
-
-    def cross_entropy(self, predictions, targets):
-        ce = -np.sum(targets*np.log(predictions)+(1-targets)*np.log(1-predictions), axis=1)
-        return ce
 
     def __getitem__(self, index):
         """Generate one batch of data according to the batch index"""
@@ -97,7 +88,7 @@ class DataGenerator(keras.utils.Sequence):
             temp_x_original_train = copy.copy(x_origin)
             x_10, self.y_train = self.au.worst_of_10(temp_x_original_train, self.y_train)
             if config.enable_optimize:
-                x, loss = self.optimized_select_worst(x_10, y, self.is_robust[start:end])
+                x, loss = self.optimized_select_worst(x_10, y, self.prev_is_robust[start:end])
                 max_loss = np.max(loss, axis=0)
                 for j in range(len(max_loss)):
                     if max_loss[j] < 1e-4:  # this node becomes robust
@@ -139,11 +130,15 @@ class DataGenerator(keras.utils.Sequence):
 
         if config.enable_optimize:
             print("number of skipped node is: ", self.skipped_node, len(self.y_train))
-            self.is_robust = [False] * len(self.x_original_train)
+            if self.strategy.value == SAU.replace_worst_of_10.value:
+                self.prev_is_robust = copy.deepcopy(self.is_robust)
+                self.is_robust = [False] * len(self.x_original_train)
+
         print("prediction time is: ", self.predict_time)
         print("selection time is: ", self.total_time)
         self.total_time = 0
         self.predict_time = 0
+
         self.index += 1
 
         # do not need to augment for the last epoch
@@ -280,6 +275,7 @@ class DataGenerator(keras.utils.Sequence):
 
     def select_worst(self, x_10=None, y=None):
         """Evaluate the loss of each image, and select the worst one based on loss"""
+        ss_time = time.time()
         for i in range(len(x_10)):
             x_10[i] = self.original_target.preprocess_original_imgs(x_10[i])
         n = len(x_10[0])
@@ -290,10 +286,10 @@ class DataGenerator(keras.utils.Sequence):
             x_10_temp = copy.deepcopy(x_10)
             shape = (n * num_perturb,) + self.original_target.input_shape
             s_time = time.time()
-            y_predict_temp = self.model.predict(np.asarray(x_10_temp).reshape(shape))
+            y_predict_temp = self.model.predict_on_batch(np.asarray(x_10_temp).reshape(shape))
             self.predict_time += time.time()-s_time
             del x_10_temp
-            ss_start = time.time()
+
             y_true1 = list(y) * num_perturb
             '''
             y_true1 = np.array(y_true1, dtype='float32')
@@ -302,7 +298,7 @@ class DataGenerator(keras.utils.Sequence):
             loss1 = keras.losses.categorical_crossentropy(y_true1, y_pred1)
             loss = keras.backend.get_value(loss1)
             '''
-            y_pred1 = np.clip(np.array(y_predict_temp, dtype='float64'), 1e-8, 1-1e-8)
+            y_pred1 = np.clip(np.array(y_predict_temp, dtype='float64'), 1e-8, 1 - 1e-8)
             y_true1 = np.array(y_true1, dtype='float64')
             loss = self.cross_entropy(y_pred1, y_true1)
 
@@ -320,16 +316,17 @@ class DataGenerator(keras.utils.Sequence):
                 idx = np.expand_dims(idx, axis=-1)
                 idx = np.expand_dims(idx, axis=-1)  # shape (bsize, 1, 1, 1)
                 x_origin = np.where(idx, set_i, x_origin, )  # shape (bsize, 32, 32, 3)
-            self.total_time += time.time()-ss_start
+        self.total_time += time.time() - ss_time
         return x_origin, loss_all
 
     def optimized_select_worst(self, x_10=None, y=None, is_robust=None):
         """Evaluate the loss of each image, and select the worst one based on loss"""
+        ss_time = time.time()
         for i in range(len(x_10)):
             x_10[i] = self.original_target.preprocess_original_imgs(x_10[i])
         x_10 = np.asarray(x_10)
         n = len(x_10[0])
-        logger.debug("original shape", np.shape(x_10))
+        logger.debug("original shape", str(np.shape(x_10)))
 
         robust_x = []
         robust_y = []
@@ -348,8 +345,8 @@ class DataGenerator(keras.utils.Sequence):
 
         if len(unrobust_x) != 0:
             unrobust_x = np.swapaxes(unrobust_x, 0, 1)
-        logger.debug("length of robust", len(robust_y))
-        logger.debug("length of unrobust", np.shape(np.asarray(unrobust_x)))
+        logger.debug("length of robust", str(len(robust_y)))
+        logger.debug("length of unrobust", str(np.shape(np.asarray(unrobust_x))))
 
         num_perturb = len(unrobust_x)
         if num_perturb == 0:
@@ -366,17 +363,16 @@ class DataGenerator(keras.utils.Sequence):
                     training_data = np.concatenate((training_data, robust_x), axis=0)
             else:
                 training_data = np.asarray(robust_x)
-            logger.debug("length of training_data", np.shape(training_data))
+            logger.debug("length of training_data", str(np.shape(training_data)))
             start_time = time.time()
             y_predict_temp = self.model.predict(training_data)
             self.predict_time += time.time()-start_time
-
             y_true1 = list(unrobust_y) * num_perturb + robust_y
-            #y_true1 = np.array(y_true1, dtype='float32')
-            #y_true1 = tf.convert_to_tensor(y_true1)
-            #y_pred1 = tf.convert_to_tensor(y_predict_temp)
-            #loss1 = keras.losses.categorical_crossentropy(y_true1, y_pred1)
-            #loss = keras.backend.get_value(loss1)
+            # y_true1 = np.array(y_true1, dtype='float32')
+            # y_true1 = tf.convert_to_tensor(y_true1)
+            # y_pred1 = tf.convert_to_tensor(y_predict_temp)
+            # loss1 = keras.losses.categorical_crossentropy(y_true1, y_pred1)
+            # loss = keras.backend.get_value(loss1)
 
             y_pred1 = np.clip(np.array(y_predict_temp, dtype='float64'), 1e-8, 1-1e-8)
             y_true1 = np.array(y_true1, dtype='float64')
@@ -402,7 +398,7 @@ class DataGenerator(keras.utils.Sequence):
                     loss_all[:, i] = unrobust_loss[:, unrobust_index]
                     unrobust_index += 1
 
-            logger.debug("loss shape", np.shape(loss_all))
+            logger.debug("loss shape", str(np.shape(loss_all)))
 
             max_loss = loss_all[0]
             x_origin = x_10[0]
@@ -417,7 +413,7 @@ class DataGenerator(keras.utils.Sequence):
                 idx = np.expand_dims(idx, axis=-1)
                 idx = np.expand_dims(idx, axis=-1)  # shape (bsize, 1, 1, 1)
                 x_origin = np.where(idx, set_i, x_origin, )  # shape (bsize, 32, 32, 3)
-
+        self.total_time += time.time()-ss_time
         return x_origin, loss_all
 
     def select_worst_cov_epoch(self, x_10=None, y=None):
