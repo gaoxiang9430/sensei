@@ -22,7 +22,7 @@ import tensorflow as tf
 import cv2
 from deepaugment.data_generator import DataGenerator
 from deepaugment.util import logger
-from deepaugment.config import global_config as config
+from deepaugment.config import ExperimentalConfig
 
 
 def preprocess_img(self, img):
@@ -52,18 +52,18 @@ def cv2_preprocess_img(img, img_size):
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     clahe_img = clahe.apply(gray_img)
     """
-    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-    lab_planes = cv2.split(lab)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    lab_planes[0] = clahe.apply(lab_planes[0])
-    lab = cv2.merge(lab_planes)
-    clahe_img = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
-    # normalize image intensities
-    img = 2.0*(clahe_img*1.0 / 255) - 1.0
-    min_side = min(img.shape[:-1])
-    centre = img.shape[0] // 2, img.shape[1] // 2
-    img = img[centre[0] - min_side // 2:centre[0] + min_side // 2,
-              centre[1] - min_side // 2:centre[1] + min_side // 2]
+    # lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+    # lab_planes = cv2.split(lab)
+    # clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    # lab_planes[0] = clahe.apply(lab_planes[0])
+    # lab = cv2.merge(lab_planes)
+    # clahe_img = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+    # # normalize image intensities
+    # img = 2.0*(clahe_img*1.0 / 255) - 1.0
+    # min_side = min(img.shape[:-1])
+    # centre = img.shape[0] // 2, img.shape[1] // 2
+    # img = img[centre[0] - min_side // 2:centre[0] + min_side // 2,
+    #           centre[1] - min_side // 2:centre[1] + min_side // 2]
     img = cv2.resize(img, (img_size, img_size))
     # img = img.reshape(self.IMG_SIZE, self.IMG_SIZE, 1)
     return img
@@ -73,6 +73,8 @@ class GtsrbModel:
 
     """ source dir is the relative path of gtsrb data set' """
     def __init__(self, source_dir=None, start_point=0, epoch=30):
+
+        self.config = ExperimentalConfig.gen_config()
         # Config related to images in the gtsrb dataset
         self.start_point = start_point
 
@@ -80,7 +82,7 @@ class GtsrbModel:
         self.IMG_SIZE = 48
         self.epoch = epoch
         self.name = "gtsrb"
-        self.batch_size = 256
+        self.batch_size = 512
         self.input_shape = (self.IMG_SIZE, self.IMG_SIZE, 3)
         self.script_path = os.path.dirname(os.path.abspath(__file__))
         self.root_dir = os.path.join(self.script_path, source_dir)
@@ -132,7 +134,7 @@ class GtsrbModel:
             oxford_model.add(MaxPooling2D(pool_size=(2, 2)))
             oxford_model.add(Dropout(0.2))
 
-            if config.enable_filters:
+            if self.config.enable_filters:
                 oxford_model.add(Conv2D(128, (3, 3), padding="same", activation="relu"))
                 oxford_model.add(Conv2D(128, (3, 3), activation="relu"))
                 oxford_model.add(MaxPooling2D(pool_size=(2, 2)))

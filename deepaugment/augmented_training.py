@@ -7,7 +7,7 @@ Time: Sep, 21, 2018
 from dataset.gtsrb.train import GtsrbModel
 from dataset.cifar10.train import Cifar10Model
 import argparse
-from config import global_config as config
+from config import ExperimentalConfig
 from util import SAU, DATASET, logger
 
 
@@ -33,13 +33,14 @@ class AugmentedModel:
         model = self.target.load_model(_model[0], _model[1])
         self.target.test_dnn_model(model, "", self.target.preprocess_original_imgs(x_test), y_test)
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Augmented Training.')
     parser.add_argument('-s', '--strategy', dest='strategy', type=str, nargs='+',
                         help='augmentation strategy, supported strategy:' + str(SAU.list()))
     parser.add_argument('-d', '--dataset', dest='dataset', type=str, nargs='+',
                         help='the name of dataset, support dataset:' + str(DATASET.list()))
-    parser.add_argument('-q', '--queue', dest='queue', type=int, nargs='+', default=10,
+    parser.add_argument('-q', '--queue', dest='queue', type=int, nargs='+', default=4,
                         help='the length of queue for genetic algorithm (default 10)')
     parser.add_argument('-t', '--start-point', dest='start_point', type=int, nargs='+', default=0,
                         help='the start point of epoch (default from epoch 0)')
@@ -47,6 +48,8 @@ if __name__ == '__main__':
                         help='the number of training epochs')
     parser.add_argument('-f', '--filter', action='store_true', dest='enable_filter',
                         help='enable filter transformation operators (zoom, blur, contrast, brightness)')
+    parser.add_argument('-o', '--optimize', action='store_true', dest='enable_optimize',
+                        help='enable optimize')
 
     args = parser.parse_args()
 
@@ -65,10 +68,16 @@ if __name__ == '__main__':
         logger.error("unsupported dataset, please use --help to find supported ones")
         exit(1)
 
+    config = ExperimentalConfig.gen_config()
+
     config.queue_len = args.queue
     config.enable_filters = args.enable_filter
+    config.enable_optimize = args.enable_optimize
     start_point = args.start_point[0]
     epoch = args.epoch[0]
+
+    ExperimentalConfig.save_config(config)
+    config.print_config()
 
     # initialize dataset
     dat = DATASET.get_name(dataset)
@@ -86,8 +95,6 @@ if __name__ == '__main__':
     _model_file = "models/" + dataset + aug_strategy + "_model_" + \
                   str(config.enable_filters) + ".hdf5"
     _model0 = [0, _model_file]
-
-    config.print_config()
 
     atm.train(SAU.get_name(aug_strategy), _model0)
 

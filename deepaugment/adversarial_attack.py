@@ -7,16 +7,18 @@ Time: Sep, 21, 2018
 from dataset.gtsrb.train import GtsrbModel
 from dataset.cifar10.train import Cifar10Model
 from perturbator import Perturbator
-from config import global_config as config
+from config import ExperimentalConfig
 from util import SAT, SAU, DATASET, logger
 import numpy as np
 import copy
 import argparse
 
+
 class AttackModel:
 
     def __init__(self, target=None):
         self.target = target
+        self.config = ExperimentalConfig.gen_config()
 
     @staticmethod
     def predict(model, x, y):
@@ -63,7 +65,7 @@ class AttackModel:
             for i in range(len(x_test)):
                 grid_x_i = []
                 grid_y_i = []
-                for p1 in config.rotation_range:
+                for p1 in self.config.rotation_range:
                     x_i = copy.deepcopy(x_test[i])
                     x_i = pt.fix_perturb_img(x_i, p1)
                     grid_x_i.append(x_i)
@@ -90,8 +92,8 @@ class AttackModel:
             for i in range(len(x_test)):
                 grid_x_i = []
                 grid_y_i = []
-                for p2 in config.translate_range:
-                    for p2_v in config.translate_range:
+                for p2 in self.config.translate_range:
+                    for p2_v in self.config.translate_range:
                         x_i = copy.deepcopy(x_test[i])
                         x_i = pt.fix_perturb_img(x_i, 0, p2, p2_v)
                         grid_x_i.append(x_i)
@@ -118,7 +120,7 @@ class AttackModel:
             for i in range(len(x_test)):
                 grid_x_i = []
                 grid_y_i = []
-                for p3 in config.shear_range:
+                for p3 in self.config.shear_range:
                     x_i = copy.deepcopy(x_test[i])
                     x_i = pt.fix_perturb_img(x_i, 0, 0, 0, p3)
                     grid_x_i.append(x_i)
@@ -143,15 +145,15 @@ class AttackModel:
             correct = 0
             for i in range(len(x_test)):
                 is_correct = True
-                for p1 in config.rotation_range[::30]:
-                    for p2 in config.translate_range[::3]:
-                        for p2_v in config.translate_range[::3]:
-                            for p3 in config.shear_range[::20]:
-                                if config.enable_filters:
-                                    for p4 in config.zoom_range[::10]:
-                                        for p5 in config.blur_range[::1]:
-                                            for p6 in config.brightness_range[::16]:
-                                                for p7 in config.contrast_range[::8]:
+                for p1 in self.config.rotation_range[::30]:
+                    for p2 in self.config.translate_range[::3]:
+                        for p2_v in self.config.translate_range[::3]:
+                            for p3 in self.config.shear_range[::20]:
+                                if self.config.enable_filters:
+                                    for p4 in self.config.zoom_range[::10]:
+                                        for p5 in self.config.blur_range[::1]:
+                                            for p6 in self.config.brightness_range[::16]:
+                                                for p7 in self.config.contrast_range[::8]:
                                                     x_i = copy.deepcopy(x_test[i])
                                                     x_i = pt.fix_perturb_img(x_i, p1, p2, p2_v, p3, p4, p5, p6, p7)
                                                     loss, acc = self.target.test_dnn_model(
@@ -184,18 +186,18 @@ class AttackModel:
                 grid_x_i = []
                 grid_y_i = []
                 total_pert = 0
-                for p1 in config.rotation_range[::30]:
-                    for p2 in config.translate_range[::3]:
-                        for p2_v in config.translate_range[::3]:
-                            for p3 in config.shear_range[::20]:
-                    # for p1 in config.rotation_range[::6]:
-                    #     for p2 in config.translate_range[::2]:
-                    #         for p3 in config.shear_range[::4]:
-                                if config.enable_filters:
-                                    for p4 in config.zoom_range[::10]:
-                                        for p5 in config.blur_range[::1]:
-                                            for p6 in config.brightness_range[::16]:
-                                                for p7 in config.contrast_range[::8]:
+                for p1 in self.config.rotation_range[::30]:
+                    for p2 in self.config.translate_range[::3]:
+                        for p2_v in self.config.translate_range[::3]:
+                            for p3 in self.config.shear_range[::20]:
+                    # for p1 in self.config.rotation_range[::6]:
+                    #     for p2 in self.config.translate_range[::2]:
+                    #         for p3 in self.config.shear_range[::4]:
+                                if self.config.enable_filters:
+                                    for p4 in self.config.zoom_range[::10]:
+                                        for p5 in self.config.blur_range[::1]:
+                                            for p6 in self.config.brightness_range[::16]:
+                                                for p7 in self.config.contrast_range[::8]:
                                                     x_i = copy.deepcopy(x_test[i])
                                                     x_i = pt.fix_perturb_img(x_i, p1, p2, p2_v, p3, p4, p5, p6, p7)
                                                     grid_x_i.append(x_i)
@@ -243,7 +245,10 @@ if __name__ == '__main__':
                         help='augmentation strategy, supported strategy:' + str(SAU.list()))
     parser.add_argument('--dataset', dest='dataset', type=str, nargs='+',
                         help='the name of dataset, support dataset:' + str(DATASET.list()))
-    # TODO: attack strategy
+    parser.add_argument('-f', '--filter', action='store_true', dest='enable_filter',
+                        help='enable filter transformation operators (zoom, blur, contrast, brightness)')
+    parser.add_argument('-o', '--optimize', action='store_true', dest='enable_optimize',
+                        help='enable optimize')
 
     args = parser.parse_args()
     if len(args.strategy) <= 0 or len(args.dataset) <= 0:
@@ -260,6 +265,12 @@ if __name__ == '__main__':
     if dataset not in DATASET.list():
         print("unsupported dataset, please use --help to find supported ones")
         exit(1)
+
+    config = ExperimentalConfig.gen_config()
+    config.enable_filters = args.enable_filter
+    config.enable_optimize = args.enable_optimize
+    ExperimentalConfig.save_config(config)
+    config.print_config()
 
     # initialize dataset
     dat = DATASET.get_name(dataset)
@@ -294,4 +305,3 @@ if __name__ == '__main__':
     '''
     print("\n===================== grid =====================")
     am.attack(SAT.grid2, _model0, "grid attack " + aug_strategy + " oxford model")
-

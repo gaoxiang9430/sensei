@@ -2,7 +2,7 @@ from collections import defaultdict, OrderedDict
 from keras.models import Model
 from deepaugment.config import *
 import multiprocessing
-from config import global_config as config
+from config import ExperimentalConfig
 from keras.backend import int_shape
 import tensorflow as tf
 import keras
@@ -15,9 +15,9 @@ def scale(intermediate_layer_output):
     return x_scaled
 
 
-def compare_cov2(t1_i, t2_i):
-    lower_bound = config.coverage_threshold*-1
-    upper_bound = config.coverage_threshold
+def compare_cov2(t1_i, t2_i, coverage_threshold):
+    lower_bound = coverage_threshold*-1
+    upper_bound = coverage_threshold
     minus = t1_i - t2_i
     cov_diff = sum(minus > upper_bound) + sum(minus < lower_bound)
 
@@ -52,6 +52,7 @@ def preprocess_cov(output_i):
 
 class NeuralCoverage:
     def __init__(self, model):
+        self.config = ExperimentalConfig.gen_config()
         self.model = model
         # self.model_layer_dict = OrderedDict()
         # for layer in model.layers:
@@ -66,7 +67,7 @@ class NeuralCoverage:
         self.intermediate_layer_model = Model(inputs=model.input,
                                               outputs=[model.get_layer(layer_name).output
                                                        for layer_name in self.layer_names])
-        self.pool = multiprocessing.Pool(config.num_processor)
+        self.pool = multiprocessing.Pool(self.config.num_processor)
         self.class_size = int_shape(model.get_layer(self.layer_names[-1]).output)[-1]
 
     def neuron_covered(self):
@@ -85,7 +86,7 @@ class NeuralCoverage:
         """ update neural based on output """
         scaled = scale(intermediate_layer_output)
         for num_neuron in xrange(scaled.shape[-1]):
-            if np.mean(scaled[..., num_neuron]) > config.coverage_threshold:
+            if np.mean(scaled[..., num_neuron]) > self.config.coverage_threshold:
                 self.model_layer_dict[(self.layer_names[layer_index], num_neuron)] = True
 
     def full_coverage(self):

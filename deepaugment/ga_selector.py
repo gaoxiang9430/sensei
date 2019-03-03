@@ -1,6 +1,6 @@
 from transformation import Transformation
 import copy
-from config import global_config as config
+from config import ExperimentalConfig
 from util import logger
 from deepaugment.perturbator import Perturbator
 import random
@@ -24,6 +24,8 @@ class Item(object):
 
 
 class GridTransformation:
+    config = ExperimentalConfig.gen_config()
+
     def __init__(self, num_class):
         self.class_grid_transformation = dict()
         self.class_index = dict()
@@ -37,15 +39,15 @@ class GridTransformation:
     @staticmethod
     def generate_transformations():
         trs = []
-        for p1 in config.rotation_range[12::18]:           # 6 [-30, 30]
-            for p2 in config.translate_range[1::2]:        # 1 [-3, 3]
-                for p2_v in config.translate_range[1::2]:  # 1 [-3, 3]
-                    for p3 in config.shear_range[8::12]:   # 4 [-20, 20]
-                        if config.enable_filters:
-                            for p4 in config.zoom_range[4::6]:                   # 2 [-10, 10]
-                                for p5 in config.blur_range[::1]:                #
-                                    for p6 in config.brightness_range[4::12]:    # 4 [-16, 16]
-                                        for p7 in config.contrast_range[2::6]:   # 2 [-8, 8]
+        for p1 in GridTransformation.config.rotation_range[12::18]:           # 6 [-30, 30]
+            for p2 in GridTransformation.config.translate_range[1::2]:        # 1 [-3, 3]
+                for p2_v in GridTransformation.config.translate_range[1::2]:  # 1 [-3, 3]
+                    for p3 in GridTransformation.config.shear_range[8::12]:   # 4 [-20, 20]
+                        if GridTransformation.config.enable_filters:
+                            for p4 in GridTransformation.config.zoom_range[4::6]:                   # 2 [-10, 10]
+                                for p5 in GridTransformation.config.blur_range[::1]:                #
+                                    for p6 in GridTransformation.config.brightness_range[4::12]:    # 4 [-16, 16]
+                                        for p7 in GridTransformation.config.contrast_range[2::6]:   # 2 [-8, 8]
                                             tr = Transformation(p1, p2, p2_v, p3, p4, p5, p6, p7)
                                             trs.append(tr)
                         else:
@@ -69,6 +71,8 @@ class GridTransformation:
 class GASelect:
 
     def __init__(self, x_train=None, y_train=None, original_target=None):
+        config = ExperimentalConfig.gen_config()
+        self.config = config
         self.queue_set = []  # num_test * num_mutate
         self.queue_len = config.queue_len
         self.pt = Perturbator()
@@ -117,7 +121,7 @@ class GASelect:
                     self.x_train[i] = np.fliplr(self.x_train[i])
 
         r = random.choice(range(100)) / float(100)
-        if r < config.prob_mutate:
+        if r < self.config.prob_mutate:
             return self.mutate(start, end)
         else:
             return self.crossover(start, end)
@@ -130,7 +134,7 @@ class GASelect:
             top_item = q[0]
 
             # already robust enough
-            if config.enable_optimize and top_item.loss < 1e-4:
+            if self.config.enable_optimize and top_item.loss < 1e-4:
                 for j in range(6):
                     q.append(top_item)
                 is_robust.append(True)
@@ -157,7 +161,7 @@ class GASelect:
             top_item = q[0]
 
             # already robust enough
-            if config.enable_optimize and top_item.loss < 1e-4:
+            if self.config.enable_optimize and top_item.loss < 1e-4:
                 for j in range(6):
                     q.append(top_item)
                 is_robust.append(True)

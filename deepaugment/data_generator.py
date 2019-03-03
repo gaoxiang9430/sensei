@@ -9,7 +9,7 @@ import keras
 import tensorflow as tf
 import copy
 from util import SAU, logger
-from config import global_config as config
+from config import ExperimentalConfig
 from ga_selector import GASelect
 from neural_coverage import NeuralCoverage
 import random
@@ -22,6 +22,7 @@ class DataGenerator(keras.utils.Sequence):
     def __init__(self, original_target=None, model=None, x_original_train=None, y_original_train=None,
                  batch_size=128, strategy=SAU.replace30, graph=None):
 
+        self.config = ExperimentalConfig.gen_config()
         self.au = Augmenter()
         self.batch_size = batch_size
         self.original_target = original_target
@@ -31,7 +32,7 @@ class DataGenerator(keras.utils.Sequence):
         self.model = model
         self.graph = graph
 
-        if config.enable_optimize:
+        if self.config.enable_optimize:
             self.skipped_node = 0
 
         temp_x_original_train = copy.deepcopy(self.x_original_train)
@@ -49,14 +50,16 @@ class DataGenerator(keras.utils.Sequence):
             self.ga_selector = GASelect(self.x_original_train, self.y_original_train)
         elif self.strategy.value == SAU.replace_worst_of_10_cov.value:
             self.nc = NeuralCoverage(model)
-        elif self.strategy.value == SAU.replace_worst_of_10.value and config.enable_optimize:
+        elif self.strategy.value == SAU.replace_worst_of_10.value and self.config.enable_optimize:
             self.is_robust = [False] * len(x_original_train)
             self.prev_is_robust = [False] * len(x_original_train)
 
-        self.index = 0
         self.total_time = 0
         self.predict_time = 0
-        if config.enable_optimize:
+        self.label_record = [[0 for x in range(original_target.num_classes)]
+                             for y in range(original_target.num_classes)]
+
+        if self.config.enable_optimize:
             self.current_indices = range(len(x_original_train))
 
     def cross_entropy(self, predictions, targets):
@@ -77,7 +80,7 @@ class DataGenerator(keras.utils.Sequence):
         x = copy.deepcopy(self.x_train[start:end])
         y = self.y_train[start:end]
 
-        if config.epoch_level_augment:  # or self.index % 2 == 0:
+        if self.config.epoch_level_augment:
             return x, y
 
         if index % 50 == 0:
@@ -87,7 +90,7 @@ class DataGenerator(keras.utils.Sequence):
             x_origin = self.x_original_train[start:end]
             temp_x_original_train = copy.copy(x_origin)
             x_10, self.y_train = self.au.worst_of_10(temp_x_original_train, self.y_train)
-            if config.enable_optimize:
+            if self.config.enable_optimize:
                 x, loss = self.optimized_select_worst(x_10, y, self.prev_is_robust[start:end])
                 max_loss = np.max(loss, axis=0)
                 for j in range(len(max_loss)):
@@ -107,7 +110,7 @@ class DataGenerator(keras.utils.Sequence):
         elif self.strategy.value == SAU.ga_loss.value:
             is_robust, x_n = self.ga_selector.generate_next_population(start, end)  # num_population * num_test
 
-            if config.enable_optimize:
+            if self.config.enable_optimize:
                 x, loss = self.optimized_select_worst(x_n, y, is_robust)
             else:
                 x, loss = self.select_worst(x_n, y)
@@ -128,7 +131,7 @@ class DataGenerator(keras.utils.Sequence):
     def on_epoch_end(self):
         tf.reset_default_graph()
 
-        if config.enable_optimize:
+        if self.config.enable_optimize:
             print("number of skipped node is: ", self.skipped_node, len(self.y_train))
             if self.strategy.value == SAU.replace_worst_of_10.value:
                 self.prev_is_robust = copy.deepcopy(self.is_robust)
@@ -139,11 +142,8 @@ class DataGenerator(keras.utils.Sequence):
         self.total_time = 0
         self.predict_time = 0
 
-        self.index += 1
-
-        # do not need to augment for the last epoch
-        if self.index == self.original_target.epoch:
-            return
+        self.label_record = [[0 for x in range(self.original_target.num_classes)]
+                             for y in range(self.original_target.num_classes)]
 
         # left-right flip for Cifar-10
         if self.original_target.__class__.__name__ == "Cifar10Model":
@@ -152,11 +152,6 @@ class DataGenerator(keras.utils.Sequence):
                 if flip:
                     self.x_original_train[i] = np.fliplr(self.x_original_train[i])
             logger.info("Flip done")
-
-        # if config.epoch_level_augment and self.strategy.value == SAU.ga_cov.value:
-        #     self.class_cov = self.nc.generate_cov_for_class(self.x_train, self.y_train)
-
-        # if it is not epoch level augment, direct skip the following augmentation process
 
         """perturb the training sets after each epoch"""
         if self.strategy.value == SAU.original.value:
@@ -188,11 +183,12 @@ class DataGenerator(keras.utils.Sequence):
             self.x_train = self.original_target.preprocess_original_imgs(self.x_train)
             logger.info(" Augmentation replace40 Done!!!")
 
-        if not config.epoch_level_augment:
+        # if it is not epoch level augment, direct skip the following augmentation process
+        if not self.config.epoch_level_augment:
             return
 
         if self.strategy.value == SAU.replace_worst_of_10.value:
-            if config.enable_optimize:
+            if self.config.enable_optimize:
                 logger.debug("the number of images to be augmented is : " + str(len(self.current_indices)))
                 temp_x_original_train = copy.deepcopy(
                     list(itemgetter(*self.current_indices)(self.x_original_train)))
@@ -202,7 +198,7 @@ class DataGenerator(keras.utils.Sequence):
             x_10, self.y_train = self.au.worst_of_10(temp_x_original_train, self.y_train)
             logger.info("Generation Done!!!")
             # select the worst one based on loss
-            if config.enable_optimize:
+            if self.config.enable_optimize:
                 self.select_worst_epoch(x_10, list(itemgetter(*self.current_indices)(self.y_train)))
             else:
                 self.select_worst_epoch(x_10, self.y_train)
@@ -259,10 +255,10 @@ class DataGenerator(keras.utils.Sequence):
             y_max = np.max(loss, axis=0)
 
         logger.debug("length of y_argmax: " + str(len(y_argmax)))
-        if config.enable_optimize:
+        if self.config.enable_optimize:
             temp_indices = copy.deepcopy(self.current_indices)
         for j in range(len(y_argmax)):
-            if config.enable_optimize:
+            if self.config.enable_optimize:
                 x_index = temp_indices[j]
                 index = y_argmax[j]
                 self.x_train[x_index] = x_10[j][index]  # update x_train (not good design)
@@ -303,19 +299,35 @@ class DataGenerator(keras.utils.Sequence):
             loss = self.cross_entropy(y_pred1, y_true1)
 
             loss_all = np.asarray(loss).reshape(num_perturb, n)
-            max_loss = loss_all[0]
+            # max_loss = loss_all[0]
+            # x_origin = x_10[0]
+            #
+            # for i in range(1, num_perturb):
+            #     loss = loss_all[i]
+            #     set_i = x_10[i]
+            #
+            #     idx = (loss > max_loss)
+            #     max_loss = np.maximum(loss, max_loss)
+            #     idx = np.expand_dims(idx, axis=-1)
+            #     idx = np.expand_dims(idx, axis=-1)
+            #     idx = np.expand_dims(idx, axis=-1)  # shape (bsize, 1, 1, 1)
+            #     x_origin = np.where(idx, set_i, x_origin, )  # shape (bsize, 32, 32, 3)
+
             x_origin = x_10[0]
+            y_argmax = np.argsort(loss_all, axis=0)[-2:][::-1]
+            logger.debug("length of y_argmax: " + str(len(y_argmax[0])))
+            for j in range(len(y_argmax)):
+                index = y_argmax[0][j]
 
-            for i in range(1, num_perturb):
-                loss = loss_all[i]
-                set_i = x_10[i]
+                true_label = np.argmax(y[j])
+                predict_label = np.argmax(y_pred1[j][index])
+                if true_label != predict_label and self.label_record[true_label][predict_label] > 1000:
+                    index = y_argmax[1][j]
+                    predict_label = np.argmax(y_pred1[j][index])
+                self.label_record[true_label][predict_label] += 1
 
-                idx = (loss > max_loss)
-                max_loss = np.maximum(loss, max_loss)
-                idx = np.expand_dims(idx, axis=-1)
-                idx = np.expand_dims(idx, axis=-1)
-                idx = np.expand_dims(idx, axis=-1)  # shape (bsize, 1, 1, 1)
-                x_origin = np.where(idx, set_i, x_origin, )  # shape (bsize, 32, 32, 3)
+                x_origin[j] = x_10[j][index]  # update x_train (not good design)
+
         self.total_time += time.time() - ss_time
         return x_origin, loss_all
 
@@ -326,7 +338,7 @@ class DataGenerator(keras.utils.Sequence):
             x_10[i] = self.original_target.preprocess_original_imgs(x_10[i])
         x_10 = np.asarray(x_10)
         n = len(x_10[0])
-        logger.debug("original shape", str(np.shape(x_10)))
+        logger.debug("original shape", np.shape(x_10))
 
         robust_x = []
         robust_y = []
@@ -345,8 +357,8 @@ class DataGenerator(keras.utils.Sequence):
 
         if len(unrobust_x) != 0:
             unrobust_x = np.swapaxes(unrobust_x, 0, 1)
-        logger.debug("length of robust", str(len(robust_y)))
-        logger.debug("length of unrobust", str(np.shape(np.asarray(unrobust_x))))
+        logger.debug("length of robust", len(robust_y))
+        logger.debug("length of unrobust", np.shape(np.asarray(unrobust_x)))
 
         num_perturb = len(unrobust_x)
         if num_perturb == 0:
@@ -363,7 +375,7 @@ class DataGenerator(keras.utils.Sequence):
                     training_data = np.concatenate((training_data, robust_x), axis=0)
             else:
                 training_data = np.asarray(robust_x)
-            logger.debug("length of training_data", str(np.shape(training_data)))
+            logger.debug("length of training_data", np.shape(training_data))
             start_time = time.time()
             y_predict_temp = self.model.predict(training_data)
             self.predict_time += time.time()-start_time
@@ -398,7 +410,7 @@ class DataGenerator(keras.utils.Sequence):
                     loss_all[:, i] = unrobust_loss[:, unrobust_index]
                     unrobust_index += 1
 
-            logger.debug("loss shape", str(np.shape(loss_all)))
+            logger.debug("loss shape", np.shape(loss_all))
 
             max_loss = loss_all[0]
             x_origin = x_10[0]
@@ -600,4 +612,3 @@ class DataGenerator(keras.utils.Sequence):
                 x_origin = np.where(idx, set_i, x_origin, )  # shape (bsize, 32, 32, 3)
 
         return x_origin, cov_diff_all
-

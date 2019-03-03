@@ -1,38 +1,39 @@
 import numpy as np
 from util import logger
+import pickle
+import os.path
+import commands
 
 
-class ExperimentalConfig:
-    queue_len = 4              # config the size of queue for genetic algorithm
-    prob_mutate = 0.6          # mutate probability
+class Config:
+    config = None
+    queue_len = 4  # config the size of queue for genetic algorithm
+    prob_mutate = 0.6  # mutate probability
 
-    num_processor = 56         # the number of process (for multiprocessing)
-    coverage_threshold = 0.5   # differential coverage threshold
+    num_processor = 56  # the number of process (for multiprocessing)
+    coverage_threshold = 0.5  # differential coverage threshold
 
     # to enable translation based on filter
-    enable_filters = False     # zoom, blur, brightness, contrast
+    enable_filters = True  # zoom, blur, brightness, contrast
     """ define translation range """
-    rotation_range = range(-30, 31)                            # [-30, 30, 1]       - 60
+    rotation_range = range(-30, 31)  # [-30, 30, 1]       - 60
     # rotation_range is set to 15 for cifar 10
     # rotation_range = range(-15, 15)                          # [-15, 15, 1]       - 30
-    translate_range = range(-3, 4)                             # [-3, 3, 1]         - 6
-    shear_range = list(np.array(range(-20, 21)) * 1.0 / 200)   # [-0.1, 0.1, 0.005] - 40
+    translate_range = range(-3, 4)  # [-3, 3, 1]         - 6
+    shear_range = list(np.array(range(-20, 21)) * 1.0 / 200)  # [-0.1, 0.1, 0.005] - 40
     """ define filter translation range """
     # zoom_range = range(1, 2)
-    zoom_range = list(np.array(range(90, 111)) * 1.0 / 100)    # [0.9, 1.1, 0.01]   - 20
-    blur_range = range(0, 1)                                   # [0, 3, 1]          - 3
-    brightness_range = list(np.array(range(-16, 17)) * 2)      # [-32, 32, 2]       - 32
+    zoom_range = list(np.array(range(90, 111)) * 1.0 / 100)  # [0.9, 1.1, 0.01]   - 20
+    blur_range = range(0, 1)  # [0, 3, 1]          - 3
+    brightness_range = list(np.array(range(-16, 17)) * 2)  # [-32, 32, 2]       - 32
     contrast_range = list(np.array(range(32, 49)) * 1.0 / 40)  # [0.8, 1.2, 0.025]  - 16
 
     # mutate step in genetic algorithm
     translation_step = {"rotation": 6, "translate": 1, "shear": 0.02, "zoom": 0.02,
                         "blur": 1, "brightness": 4, "contrast": 0.05}
 
-    enable_optimize = True
+    enable_optimize = False
     epoch_level_augment = False
-
-    def __init__(self):
-        pass
 
     def print_config(self):
         logger.info("=============== global config ===============")
@@ -56,5 +57,33 @@ class ExperimentalConfig:
 
         logger.info("=============== Training Start ===============")
 
+    def __init__(self):
+        pass
 
-global_config = ExperimentalConfig()
+
+class ExperimentalConfig:
+    config = None
+    system_id = commands.getstatusoutput("ifconfig | grep eno1 | awk '{print $NF}' | sed 's/://g'")[1]
+
+    @staticmethod
+    def gen_config():
+        # get a system unique id
+        if ExperimentalConfig.config is not None:
+            return ExperimentalConfig.config
+        elif os.path.isfile('/tmp/config' + ExperimentalConfig.system_id + '.pkl'):
+            with open('/tmp/config' + ExperimentalConfig.system_id + '.pkl', 'rb') as inputs:
+                config = pickle.load(inputs)
+        else:
+            config = Config()
+            ExperimentalConfig.save_config(config)
+        return config
+
+    @staticmethod
+    def save_config(config):
+        # get a system unique id
+        system_id = commands.getstatusoutput("ifconfig | grep eno1 | awk '{print $NF}' | sed 's/://g'")[1]
+
+        print("config optimize: " + str(config.enable_optimize))
+        print("config filter: " + str(config.enable_filters))
+        with open('/tmp/config' + system_id + '.pkl', 'wb') as output:
+            pickle.dump(config, output, pickle.HIGHEST_PROTOCOL)

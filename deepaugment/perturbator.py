@@ -6,11 +6,13 @@ Time: Sep, 25, 2018
 
 import random
 
-from config import global_config as config
+from config import ExperimentalConfig
 from libs.spacial_transformation import *
+
 
 class Perturbator:
     def __init__(self):
+        config = ExperimentalConfig.gen_config()
         self.rotation_range = config.rotation_range
         self.translate_range = config.translate_range
         self.shear_range = config.shear_range

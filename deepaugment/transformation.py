@@ -1,12 +1,13 @@
-from config import global_config as config
 import random
 import numpy as np
+from config import ExperimentalConfig
 
 
 class Transformation:
 
     def __init__(self, rotation=0, translate=0, translate_v=0, shear=0, zoom=1,
                  blur=0, brightness=0, contrast=1):
+        self.config = ExperimentalConfig.gen_config()
         self.rotation = rotation
         self.translate = translate
         self.translate_v = translate_v
@@ -45,15 +46,6 @@ class Transformation:
             x = x_min
         return x
 
-    @staticmethod
-    def set_step(loss):
-        if loss < 1e-3:
-            config.translation_step['rotation'] = 12
-            config.translation_step['shear'] = 0.04
-        else:
-            config.translation_step['rotation'] = 6
-            config.translation_step['shear'] = 0.02
-
     def get_paras(self):
         return self.rotation, self.translate, self.translate_v, self.shear, \
                self.zoom, self.blur, self.brightness, self.contrast
@@ -64,16 +56,21 @@ class Transformation:
         translate_v = self.translate_v * -1
         shear = self.shear * -1
         zoom = 2 - self.zoom
-        blur = max(config.blur_range) - self.blur
+        blur = max(self.config.blur_range) - self.blur
         brightness = self.brightness * -1
         contrast = 2 - self.contrast
         return rotation, translate, translate_v, shear, zoom, blur, brightness, contrast
 
     def crossover(self, item2, existing_trs, loss):
-        self.set_step(loss)
+        if loss < 1e-3:
+            self.config.translation_step['rotation'] = 12
+            self.config.translation_step['shear'] = 0.04
+        else:
+            self.config.translation_step['rotation'] = 6
+            self.config.translation_step['shear'] = 0.02
 
         mutated_params = []
-        if config.enable_filters:
+        if self.config.enable_filters:
             choice = random.sample(range(1, 126), 6)  # 0000001 - 1111110
         else:
             choice = random.sample(range(1, 14), 6)   # 0001 - 1110
@@ -89,7 +86,7 @@ class Transformation:
                 translate_v = item2.translate_v
             if ids[-4] == '1':
                 shear = item2.shear
-            if config.enable_filters:
+            if self.config.enable_filters:
                 if ids[-5] == '1':
                     brightness = item2.brightness
                 if ids[-6] == '1':
@@ -107,7 +104,12 @@ class Transformation:
         return mutated_params
 
     def mutate(self, existing_trs, loss):
-        self.set_step(loss)
+        if loss < 1e-3:
+            self.config.translation_step['rotation'] = 12
+            self.config.translation_step['shear'] = 0.04
+        else:
+            self.config.translation_step['rotation'] = 6
+            self.config.translation_step['shear'] = 0.02
 
         mutated_params = []
         for i in range(6):
@@ -127,7 +129,7 @@ class Transformation:
     def generate_mutated_node(self, cur_tr):
         rotation, translate, translate_v, shear, zoom, blur, brightness, contrast = cur_tr.get_paras()
 
-        if config.enable_filters:
+        if self.config.enable_filters:
             choice = random.sample(range(0, 7), 4)
         else:
             choice = random.sample(range(0, 4), 2)
@@ -135,78 +137,78 @@ class Transformation:
         if 0 in choice:
             up_down_choice = random.choice([0, 1, 2])
             if up_down_choice == 0:
-                rotation = self.fit_range(rotation + config.translation_step["rotation"],
-                                          min(config.rotation_range), max(config.rotation_range))
+                rotation = self.fit_range(rotation + self.config.translation_step["rotation"],
+                                          min(self.config.rotation_range), max(self.config.rotation_range))
             elif up_down_choice == 1:
-                rotation = self.fit_range(rotation - config.translation_step["rotation"],
-                                          min(config.rotation_range), max(config.rotation_range))
+                rotation = self.fit_range(rotation - self.config.translation_step["rotation"],
+                                          min(self.config.rotation_range), max(self.config.rotation_range))
             else:
                 rotation *= -1
 
-        if 1 in choice or config.enable_optimize:
+        if 1 in choice or self.config.enable_optimize:
             up_down_choice = random.choice([0, 1, 2])
             if up_down_choice == 0:
-                translate = self.fit_range(translate + config.translation_step["translate"],
-                                           min(config.translate_range), max(config.translate_range))
+                translate = self.fit_range(translate + self.config.translation_step["translate"],
+                                           min(self.config.translate_range), max(self.config.translate_range))
             elif up_down_choice == 1:
-                translate = self.fit_range(translate - config.translation_step["translate"],
-                                           min(config.translate_range), max(config.translate_range))
+                translate = self.fit_range(translate - self.config.translation_step["translate"],
+                                           min(self.config.translate_range), max(self.config.translate_range))
             else:
                 translate *= -1
 
-        if 2 in choice or config.enable_optimize:
+        if 2 in choice or self.config.enable_optimize:
             up_down_choice = random.choice([0, 1, 2])
             if up_down_choice == 0:
-                translate_v = self.fit_range(translate_v + config.translation_step["translate"],
-                                             min(config.translate_range), max(config.translate_range))
+                translate_v = self.fit_range(translate_v + self.config.translation_step["translate"],
+                                             min(self.config.translate_range), max(self.config.translate_range))
             elif up_down_choice == 1:
-                translate_v = self.fit_range(translate_v - config.translation_step["translate"],
-                                             min(config.translate_range), max(config.translate_range))
+                translate_v = self.fit_range(translate_v - self.config.translation_step["translate"],
+                                             min(self.config.translate_range), max(self.config.translate_range))
             else:
                 translate_v *= -1
 
         if 3 in choice:
             up_down_choice = random.choice([0, 1, 2])
             if up_down_choice == 0:
-                shear = self.fit_range(shear + config.translation_step["shear"],
-                                       min(config.shear_range), max(config.shear_range))
+                shear = self.fit_range(shear + self.config.translation_step["shear"],
+                                       min(self.config.shear_range), max(self.config.shear_range))
             elif up_down_choice == 1:
-                shear = self.fit_range(shear - config.translation_step["shear"],
-                                       min(config.shear_range), max(config.shear_range))
+                shear = self.fit_range(shear - self.config.translation_step["shear"],
+                                       min(self.config.shear_range), max(self.config.shear_range))
             else:
                 shear *= -1
 
-        if config.enable_filters:
+        if self.config.enable_filters:
             if 4 in choice:
                 up_down_choice = random.choice([0, 1, 2])
                 if up_down_choice == 0:
-                    brightness = self.fit_range(brightness + config.translation_step["brightness"],
-                                                min(config.brightness_range), max(config.brightness_range))
+                    brightness = self.fit_range(brightness + self.config.translation_step["brightness"],
+                                                min(self.config.brightness_range), max(self.config.brightness_range))
                 elif up_down_choice == 1:
-                    brightness = self.fit_range(brightness - config.translation_step["brightness"],
-                                                min(config.brightness_range), max(config.brightness_range))
+                    brightness = self.fit_range(brightness - self.config.translation_step["brightness"],
+                                                min(self.config.brightness_range), max(self.config.brightness_range))
                 else:
                     brightness *= -1
 
             if 5 in choice:
                 up_down_choice = random.choice([0, 1, 2])
                 if up_down_choice == 0:
-                    contrast = self.fit_range(contrast + config.translation_step["contrast"],
-                                              min(config.contrast_range), max(config.contrast_range))
+                    contrast = self.fit_range(contrast + self.config.translation_step["contrast"],
+                                              min(self.config.contrast_range), max(self.config.contrast_range))
                 elif up_down_choice == 1:
-                    contrast = self.fit_range(contrast - config.translation_step["contrast"],
-                                              min(config.contrast_range), max(config.contrast_range))
+                    contrast = self.fit_range(contrast - self.config.translation_step["contrast"],
+                                              min(self.config.contrast_range), max(self.config.contrast_range))
                 else:
                     contrast = 2 - contrast
 
             if 6 in choice:
                 up_down_choice = random.choice([0, 1, 2])
                 if up_down_choice == 0:
-                    zoom = self.fit_range(zoom + config.translation_step["zoom"],
-                                          min(config.zoom_range), max(config.zoom_range))
+                    zoom = self.fit_range(zoom + self.config.translation_step["zoom"],
+                                          min(self.config.zoom_range), max(self.config.zoom_range))
                 elif up_down_choice == 1:
-                    zoom = self.fit_range(zoom - config.translation_step["zoom"],
-                                          min(config.zoom_range), max(config.zoom_range))
+                    zoom = self.fit_range(zoom - self.config.translation_step["zoom"],
+                                          min(self.config.zoom_range), max(self.config.zoom_range))
                 else:
                     zoom = 2 - zoom
 

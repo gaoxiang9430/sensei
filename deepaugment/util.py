@@ -19,7 +19,6 @@ class SAU(Enum):
     replace_worst_of_10_cov = 7
     ga_loss = 8
     ga_cov = 9
-    grid = 10
 
     @staticmethod
     def list():
