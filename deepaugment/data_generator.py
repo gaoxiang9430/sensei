@@ -282,7 +282,7 @@ class DataGenerator(keras.utils.Sequence):
             x_10_temp = copy.deepcopy(x_10)
             shape = (n * num_perturb,) + self.original_target.input_shape
             s_time = time.time()
-            y_predict_temp = self.model.predict_on_batch(np.asarray(x_10_temp).reshape(shape))
+            y_predict_temp = self.model.predict(np.asarray(x_10_temp).reshape(shape))
             self.predict_time += time.time()-s_time
             del x_10_temp
 
