@@ -1,7 +1,6 @@
 set -x
 run_gtsrb ()
 {
-    rm -rf execution_$1.out
     interval=30
     for i in $(seq 0 $interval 29)
     do  
@@ -28,22 +27,21 @@ run_gtsrb ()
 #run_gtsrb replace30
 #run_gtsrb replace40
 run_gtsrb replace_worst_of_10
-run_gtsrb ga_loss
+#run_gtsrb ga_loss
 
-run_gtsrb replace_worst_of_10 -o
-run_gtsrb ga_loss -o
+#run_gtsrb replace_worst_of_10 -o
+#run_gtsrb ga_loss -o
 
 #run_gtsrb original -f
 #run_gtsrb replace30 -f
 run_gtsrb replace_worst_of_10 -f
-run_gtsrb ga_loss -f
+#run_gtsrb ga_loss -f
 
 #run_gtsrb replace_worst_of_10 -f -o
 #run_gtsrb ga_loss -f -o
 
 run_cifar ()
 {
-    rm -rf execution_cifar10_$1_*
     interval=200
     for i in $(seq 0 $interval 199)
     do

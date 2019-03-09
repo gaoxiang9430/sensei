@@ -288,6 +288,7 @@ if __name__ == '__main__':
 
     _model_file = "models/" + dataset + aug_strategy + "_model_" + \
                   str(config.enable_filters) + "_O_" + str(config.enable_optimize)+".hdf5"
+
     _model0 = [0, _model_file]
 
     print("===================== test " + aug_strategy + " =====================")

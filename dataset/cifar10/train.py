@@ -15,7 +15,7 @@ import os
 import copy
 from deepaugment.data_generator import DataGenerator
 from deepaugment.util import logger
-
+import cv2
 import numpy as np
 from keras.layers.normalization import BatchNormalization
 from keras.layers import Conv2D, Dense, Input, add, Activation, GlobalAveragePooling2D

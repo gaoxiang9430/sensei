@@ -92,8 +92,9 @@ if __name__ == '__main__':
 
     logger.info("===========  " + aug_strategy + " on "
                 + dataset + " dataset =========== ")
+
     _model_file = "models/" + dataset + aug_strategy + "_model_" + \
-                  str(config.enable_filters) + "_O_" + str(config.enable_optimize) + ".hdf5"
+                  str(config.enable_filters) + "_O_" + str(config.enable_optimize)+".hdf5"
     _model0 = [0, _model_file]
 
     atm.train(SAU.get_name(aug_strategy), _model0)

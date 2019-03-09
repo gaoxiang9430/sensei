@@ -274,59 +274,38 @@ class DataGenerator(keras.utils.Sequence):
         ss_time = time.time()
         for i in range(len(x_10)):
             x_10[i] = self.original_target.preprocess_original_imgs(x_10[i])
-        n = len(x_10[0])
         num_perturb = len(x_10)
 
         with self.graph.as_default():
-            # set_i = np.array(x_10)[:, i]
-            x_10_temp = copy.deepcopy(x_10)
-            shape = (n * num_perturb,) + self.original_target.input_shape
+            y_true = np.array(y, dtype='float64')
+            loss_all = []
+            y_pred_all = []
+
             s_time = time.time()
-            y_predict_temp = self.model.predict(np.asarray(x_10_temp).reshape(shape))
-            self.predict_time += time.time()-s_time
-            del x_10_temp
-
-            y_true1 = list(y) * num_perturb
-            '''
-            y_true1 = np.array(y_true1, dtype='float32')
-            y_true1 = tf.convert_to_tensor(y_true1)
-            y_pred1 = tf.convert_to_tensor(y_predict_temp)
-            loss1 = keras.losses.categorical_crossentropy(y_true1, y_pred1)
-            loss = keras.backend.get_value(loss1)
-            '''
-            y_pred1 = np.clip(np.array(y_predict_temp, dtype='float64'), 1e-8, 1 - 1e-8)
-            y_true1 = np.array(y_true1, dtype='float64')
-            loss = self.cross_entropy(y_pred1, y_true1)
-
-            loss_all = np.asarray(loss).reshape(num_perturb, n)
-            # max_loss = loss_all[0]
-            # x_origin = x_10[0]
-            #
-            # for i in range(1, num_perturb):
-            #     loss = loss_all[i]
-            #     set_i = x_10[i]
-            #
-            #     idx = (loss > max_loss)
-            #     max_loss = np.maximum(loss, max_loss)
-            #     idx = np.expand_dims(idx, axis=-1)
-            #     idx = np.expand_dims(idx, axis=-1)
-            #     idx = np.expand_dims(idx, axis=-1)  # shape (bsize, 1, 1, 1)
-            #     x_origin = np.where(idx, set_i, x_origin, )  # shape (bsize, 32, 32, 3)
+            for i in range(num_perturb):
+                y_pred = self.model.predict_on_batch(np.asarray(x_10[i]))
+                y_pred = np.clip(np.array(y_pred, dtype='float64'), 1e-8, 1 - 1e-8)
+                loss = self.cross_entropy(y_pred, y_true)
+                y_pred_all.append(y_pred)
+                loss_all.append(loss)
+            self.predict_time += time.time() - s_time
 
             x_origin = x_10[0]
             y_argmax = np.argsort(loss_all, axis=0)[-2:][::-1]
             logger.debug("length of y_argmax: " + str(len(y_argmax[0])))
-            for j in range(len(y_argmax)):
+            for j in range(len(y_argmax[0])):
                 index = y_argmax[0][j]
 
-                true_label = np.argmax(y[j])
-                predict_label = np.argmax(y_pred1[j][index])
-                if true_label != predict_label and self.label_record[true_label][predict_label] > 1000:
-                    index = y_argmax[1][j]
-                    predict_label = np.argmax(y_pred1[j][index])
-                self.label_record[true_label][predict_label] += 1
+                if self.strategy.value == SAU.ga_loss.value:
+                    true_label = int(np.argmax(y[j]))
+                    predict_label = int(np.argmax(y_pred_all[index][j]))
+                    if true_label != predict_label and self.label_record[true_label][predict_label] > 1000:
+                        index = y_argmax[1][j]
+                        predict_label = np.argmax(y_pred_all[index][j])
+                    self.label_record[true_label][predict_label] += 1
 
-                x_origin[j] = x_10[j][index]  # update x_train (not good design)
+                if index != 0:
+                    x_origin[j] = x_10[index][j]
 
         self.total_time += time.time() - ss_time
         return x_origin, loss_all
@@ -337,94 +316,56 @@ class DataGenerator(keras.utils.Sequence):
         for i in range(len(x_10)):
             x_10[i] = self.original_target.preprocess_original_imgs(x_10[i])
         x_10 = np.asarray(x_10)
+
         n = len(x_10[0])
+        num_perturb = len(x_10)
+
         logger.debug("original shape", np.shape(x_10))
+        loss_all = []
+        self.skipped_node += np.sum(is_robust)
 
-        robust_x = []
-        robust_y = []
-        unrobust_x = []
-        unrobust_y = []
+        # calculate the loss of each unrobust node
+        with self.graph.as_default():
+            y_true = np.array(y, dtype='float64')
+            unrobust_y = np.array([y[j] for j in range(n) if not is_robust[j]])
 
+            start_time = time.time()
+            for i in range(num_perturb):
+                if i == 0:
+                    y_pred = self.model.predict_on_batch(x_10[0])
+                    y_pred = np.clip(np.array(y_pred, dtype='float64'), 1e-8, 1 - 1e-8)
+                    loss = self.cross_entropy(y_pred, y_true)
+                    loss_all.append(loss)
+                else:
+                    x_10_i = x_10[i]
+                    x_10_i = [x_10_i[j] for j in range(n) if not is_robust[j]]
+                    y_pred = self.model.predict_on_batch(np.asarray(x_10_i))
+                    y_pred = np.clip(np.array(y_pred, dtype='float64'), 1e-8, 1 - 1e-8)
+                    unrobust_loss = self.cross_entropy(y_pred, unrobust_y)
+                    loss_all.append(unrobust_loss)
+
+            self.predict_time += time.time() - start_time
+
+        # add fake loss for the robust node
         for i in range(n):
             if is_robust[i]:
-                robust_x.append(x_10[0][i])
-                robust_y.append(y[i])
-            else:
-                unrobust_x.append(x_10[:, i])
-                unrobust_y.append(y[i])
+                for j in range(1, num_perturb):
+                    loss_all[j] = np.insert(loss_all[j], i, 0)
 
-        self.skipped_node += len(robust_y)
+        logger.debug("loss shape", np.shape(loss_all))
+        max_loss = loss_all[0]
+        x_origin = x_10[0]
 
-        if len(unrobust_x) != 0:
-            unrobust_x = np.swapaxes(unrobust_x, 0, 1)
-        logger.debug("length of robust", len(robust_y))
-        logger.debug("length of unrobust", np.shape(np.asarray(unrobust_x)))
+        for i in range(1, num_perturb):
+            loss = loss_all[i]
+            set_i = x_10[i]
 
-        num_perturb = len(unrobust_x)
-        if num_perturb == 0:
-            n = 0
-        else:
-            n = len(unrobust_x[0])
-
-        with self.graph.as_default():
-            if len(unrobust_x) != 0:
-                x_10_temp = copy.deepcopy(unrobust_x)
-                shape = (n * num_perturb,) + self.original_target.input_shape
-                training_data = np.asarray(x_10_temp).reshape(shape)
-                if len(robust_x) != 0:
-                    training_data = np.concatenate((training_data, robust_x), axis=0)
-            else:
-                training_data = np.asarray(robust_x)
-            logger.debug("length of training_data", np.shape(training_data))
-            start_time = time.time()
-            y_predict_temp = self.model.predict(training_data)
-            self.predict_time += time.time()-start_time
-            y_true1 = list(unrobust_y) * num_perturb + robust_y
-            # y_true1 = np.array(y_true1, dtype='float32')
-            # y_true1 = tf.convert_to_tensor(y_true1)
-            # y_pred1 = tf.convert_to_tensor(y_predict_temp)
-            # loss1 = keras.losses.categorical_crossentropy(y_true1, y_pred1)
-            # loss = keras.backend.get_value(loss1)
-
-            y_pred1 = np.clip(np.array(y_predict_temp, dtype='float64'), 1e-8, 1-1e-8)
-            y_true1 = np.array(y_true1, dtype='float64')
-            loss = self.cross_entropy(y_pred1, y_true1)
-
-            boundary = -len(robust_y)
-            robust_loss = []
-            if boundary != 0:
-                robust_loss = loss[boundary:]
-                unrobust_loss = loss[:boundary]
-            else:
-                unrobust_loss = loss
-            unrobust_loss = np.asarray(unrobust_loss).reshape(num_perturb, n)
-
-            loss_all = np.zeros((len(x_10), len(x_10[0])))
-            robust_index = 0
-            unrobust_index = 0
-            for i in range(len(x_10[0])):
-                if is_robust[i]:
-                    loss_all[:, i] = robust_loss[robust_index:robust_index+1]*len(x_10)
-                    robust_index += 1
-                else:
-                    loss_all[:, i] = unrobust_loss[:, unrobust_index]
-                    unrobust_index += 1
-
-            logger.debug("loss shape", np.shape(loss_all))
-
-            max_loss = loss_all[0]
-            x_origin = x_10[0]
-
-            for i in range(1, num_perturb):
-                loss = loss_all[i]
-                set_i = x_10[i]
-
-                idx = (loss > max_loss)
-                max_loss = np.maximum(loss, max_loss)
-                idx = np.expand_dims(idx, axis=-1)
-                idx = np.expand_dims(idx, axis=-1)
-                idx = np.expand_dims(idx, axis=-1)  # shape (bsize, 1, 1, 1)
-                x_origin = np.where(idx, set_i, x_origin, )  # shape (bsize, 32, 32, 3)
+            idx = (loss > max_loss)
+            max_loss = np.maximum(loss, max_loss)
+            idx = np.expand_dims(idx, axis=-1)
+            idx = np.expand_dims(idx, axis=-1)
+            idx = np.expand_dims(idx, axis=-1)  # shape (bsize, 1, 1, 1)
+            x_origin = np.where(idx, set_i, x_origin, )  # shape (bsize, 32, 32, 3)
         self.total_time += time.time()-ss_time
         return x_origin, loss_all
 
