@@ -60,6 +60,7 @@ class DATASET(Enum):
     """supported_dataset"""
     gtsrb = 1
     cifar10 = 2
+    fashionmnist = 3
 
     @staticmethod
     def list():

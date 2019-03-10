@@ -6,6 +6,7 @@ Time: Sep, 21, 2018
 
 from dataset.gtsrb.train import GtsrbModel
 from dataset.cifar10.train import Cifar10Model
+from dataset.fashionmnist.train import FashionMnist
 import argparse
 from config import ExperimentalConfig
 from util import SAU, DATASET, logger
@@ -42,6 +43,8 @@ if __name__ == '__main__':
                         help='the name of dataset, support dataset:' + str(DATASET.list()))
     parser.add_argument('-q', '--queue', dest='queue', type=int, nargs='+', default=4,
                         help='the length of queue for genetic algorithm (default 10)')
+    parser.add_argument('-m', '--model', dest='model', type=int, nargs='+', default=0,
+                        help='selection of model')
     parser.add_argument('-t', '--start-point', dest='start_point', type=int, nargs='+', default=0,
                         help='the start point of epoch (default from epoch 0)')
     parser.add_argument('-e', '--epoch', dest='epoch', type=int, nargs='+', default=200,
@@ -75,6 +78,7 @@ if __name__ == '__main__':
     config.enable_optimize = args.enable_optimize
     start_point = args.start_point[0]
     epoch = args.epoch[0]
+    model_index = int(args.model[0])
 
     ExperimentalConfig.save_config(config)
     config.print_config()
@@ -85,6 +89,8 @@ if __name__ == '__main__':
         target0 = GtsrbModel('GTSRB', start_point, epoch)
     elif dat.value == DATASET.cifar10.value:
         target0 = Cifar10Model(start_point, epoch)
+    elif dat.value == DATASET.fashionmnist.value:
+        target0 = FashionMnist(start_point, epoch)
     else:
         raise Exception('unsupported dataset', dataset)
 
@@ -93,9 +99,9 @@ if __name__ == '__main__':
     logger.info("===========  " + aug_strategy + " on "
                 + dataset + " dataset =========== ")
 
-    _model_file = "models/" + dataset + aug_strategy + "_model_" + \
+    _model_file = "models/" + dataset + aug_strategy + "_model"+str(model_index)+"_" + \
                   str(config.enable_filters) + "_O_" + str(config.enable_optimize)+".hdf5"
-    _model0 = [0, _model_file]
+    _model0 = [model_index, _model_file]
 
     atm.train(SAU.get_name(aug_strategy), _model0)
 

@@ -1,6 +1,7 @@
 dataset/gtsrb/GTSRB/
 dataset/gtsrb/models
 dataset/cifar10/models
+dataset/fashionmnist/models
 dataset/imagenet/models
 dataset/imagenet/train
 dataset/imagenet/val

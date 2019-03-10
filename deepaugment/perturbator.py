@@ -45,8 +45,7 @@ class Perturbator:
         return x, y
 
     def random_perturb(self, x=None, y=None):
-        length = range(len(x))
-        for i in length:
+        for i in range(len(x)):
             x[i] = self.random_perturb_image(x[i])
         return x, y
 

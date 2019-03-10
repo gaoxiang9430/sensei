@@ -6,6 +6,7 @@ Time: Sep, 21, 2018
 
 from dataset.gtsrb.train import GtsrbModel
 from dataset.cifar10.train import Cifar10Model
+from dataset.fashionmnist.train import FashionMnist
 from perturbator import Perturbator
 from config import ExperimentalConfig
 from util import SAT, SAU, DATASET, logger
@@ -249,6 +250,8 @@ if __name__ == '__main__':
                         help='enable filter transformation operators (zoom, blur, contrast, brightness)')
     parser.add_argument('-o', '--optimize', action='store_true', dest='enable_optimize',
                         help='enable optimize')
+    parser.add_argument('-m', '--model', dest='model', type=int, nargs='+', default=0,
+                        help='selection of model')
 
     args = parser.parse_args()
     if len(args.strategy) <= 0 or len(args.dataset) <= 0:
@@ -271,6 +274,7 @@ if __name__ == '__main__':
     config.enable_optimize = args.enable_optimize
     ExperimentalConfig.save_config(config)
     config.print_config()
+    model_index = int(args.model[0])
 
     # initialize dataset
     dat = DATASET.get_name(dataset)
@@ -278,6 +282,8 @@ if __name__ == '__main__':
         target0 = GtsrbModel(source_dir='GTSRB')
     elif dat.value == DATASET.cifar10.value:
         target0 = Cifar10Model()
+    elif dat.value == DATASET.fashionmnist.value:
+        target0 = FashionMnist()
     else:
         raise Exception('unsupported dataset', dataset)
 
@@ -286,10 +292,9 @@ if __name__ == '__main__':
 
     am = AttackModel(target=target0)
 
-    _model_file = "models/" + dataset + aug_strategy + "_model_" + \
+    _model_file = "models/" + dataset + aug_strategy + "_model"+str(model_index)+"_" + \
                   str(config.enable_filters) + "_O_" + str(config.enable_optimize)+".hdf5"
-
-    _model0 = [0, _model_file]
+    _model0 = [model_index, _model_file]
 
     print("===================== test " + aug_strategy + " =====================")
     am.attack(SAT.original, _model0, "original dataset "+aug_strategy+" oxford model")
