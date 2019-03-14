@@ -19,7 +19,6 @@ import cv2
 import numpy as np
 from keras.layers.normalization import BatchNormalization
 from keras.layers import Conv2D, Dense, Input, add, Activation, GlobalAveragePooling2D
-from keras.callbacks import TensorBoard
 from keras.models import Model
 from keras import optimizers, regularizers
 from keras import backend as K
@@ -201,8 +200,7 @@ class Cifar10Model:
         checkpoint = ModelCheckpoint(weights_file, monitor='acc', verbose=1,
                                      save_best_only=False)
 
-        callbacks_list = [TensorBoard(log_dir='./resnet_{:d}_{}/'.format(self.layers, self.name), histogram_freq=0),
-                          LearningRateScheduler(self.scheduler),
+        callbacks_list = [LearningRateScheduler(self.scheduler),
                           checkpoint]
 
         x_val = self.preprocess_original_imgs(x_val)

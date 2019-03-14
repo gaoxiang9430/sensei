@@ -12,8 +12,8 @@ import numpy as np
 import keras
 from keras import applications
 from keras.models import Model, Sequential
-from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D
+from keras.layers import Dense, Dropout, Flatten, Input
+from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
 from keras import backend as k
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import ModelCheckpoint
@@ -82,7 +82,7 @@ class GtsrbModel:
         self.IMG_SIZE = 48
         self.epoch = epoch
         self.name = "gtsrb"
-        self.batch_size = 512
+        self.batch_size = 128
         self.input_shape = (self.IMG_SIZE, self.IMG_SIZE, 3)
         self.script_path = os.path.dirname(os.path.abspath(__file__))
         self.root_dir = os.path.join(self.script_path, source_dir)
@@ -148,25 +148,100 @@ class GtsrbModel:
                                  optimizer=keras.optimizers.Adam(),
                                  metrics=['accuracy'])
             return_model = oxford_model
+            return return_model
         elif model_id == 1:
-            vggmodel = applications.VGG16(include_top=False, weights='imagenet', input_shape=input_shape)
+            model = Sequential()
 
-            top_model = Sequential()
-            top_model.add(Flatten(input_shape=vggmodel.output_shape[1:]))
-            top_model.add(Dense(512, activation='relu'))
-            top_model.add(Dropout(0.5))
-            top_model.add(Dense(256, activation='relu'))
-            top_model.add(Dropout(0.5))
-            top_model.add(Dense(self.num_classes, activation='softmax'))
+            # Block 1 Convolution layer 1,2
+            model.add(Conv2D(64, (3, 3), padding='same', input_shape=input_shape, activation='relu',
+                      data_format='channels_last'))
+            model.add(Conv2D(64, (3, 3), activation='relu'))
+            model.add(MaxPooling2D((2, 2), strides=(2, 2)))
 
-            return_model = Model(input=vggmodel.input, output=top_model(vggmodel.output))
+            # Block 2 Convolution layer 3,4
+            model.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
+            model.add(MaxPooling2D((2, 2), strides=(2, 2)))
 
-            return_model.compile(loss=keras.losses.categorical_crossentropy,
-                                 optimizer=keras.optimizers.Adam(lr=1e-5, decay=0.0),
-                                 metrics=['accuracy'])
+            # Block 3 Convolution layer 5,6,7
+            model.add(Conv2D(256, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(256, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(256, (3, 3), padding='same', activation='relu'))
+            model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+            # Block 4 Convolution layer 8,9,10
+            model.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+            model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+            # Block 5 Convolution layer 11,12,13
+            model.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+            model.add(MaxPooling2D((2, 2), strides=(2, 2), name='final_pool'))
+
+            # Block 5 Fully-connected layer 14,15 , Output layer 16
+            model.add(Flatten())
+            model.add(Dense(4096, activation='relu'))
+            model.add(Dropout(0.5))
+            model.add(Dense(4096, activation='relu'))
+            model.add(Dropout(0.5))
+            model.add(Dense(self.num_classes, activation='softmax'))
+            lr = 0.01
+            decay = 1e-6
+            sgd = keras.optimizers.SGD(lr=lr, decay=decay, momentum=0.9, nesterov=True)
+
+            model.compile(loss='categorical_crossentropy',
+                          optimizer=sgd,
+                          metrics=['accuracy'])
+
+            return model
+        elif model_id == 2:
+            """
+            model with batch normalization 
+            https://github.com/xitizzz/Traffic-Sign-Recognition-using-Deep-Neural-Network
+            """
+            model = Sequential()
+            BatchNormalization(epsilon=1e-06, momentum=0.99, weights=None)
+
+            # Block 1 Convolution layer 1,2  Normalization layer 3
+            model.add(Conv2D(32, (3, 3), padding='same', input_shape=self.input_shape, activation='relu'))
+            model.add(Conv2D(32, (3, 3), activation='relu'))
+            model.add(BatchNormalization())
+            model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+            model.add(Dropout(0.2))
+
+            # Block 1 Convolution layer 4,5  Normalization layer 6
+            model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(64, (3, 3), activation='relu'))
+            model.add(BatchNormalization())
+            model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+            model.add(Dropout(0.2))
+
+            # Block 1 Convolution layer 7,8  Normalization layer 9
+            model.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(128, (3, 3), activation='relu'))
+            model.add(BatchNormalization())
+            model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+            model.add(Dropout(0.2))
+
+            # Block 5 Fully-connected layer 10, Normalization layer 11,  Output layer 12
+            model.add(Flatten())
+            model.add(Dense(512, activation='relu'))
+            model.add(Dropout(0.5))
+            model.add(BatchNormalization())
+            model.add(Dense(self.num_classes, activation='softmax'))
+            lr = 0.01
+            decay = 1e-6
+            sgd = keras.optimizers.SGD(lr=lr, decay=decay, momentum=0.9, nesterov=True)
+
+            model.compile(loss='categorical_crossentropy',
+                          optimizer=sgd,
+                          metrics=['accuracy'])
+            return model
         else:
             raise Exception("unsupported model")
-        return return_model
 
     def load_original_data(self, data_type='train'):
         if data_type == 'train':
@@ -269,20 +344,20 @@ class GtsrbModel:
             graph = tf.get_default_graph()
             data = DataGenerator(self, model, x_train, y_train, batch_size, train_strategy, graph)
             
-        if model_id == 0:
-            model.fit_generator(data,
-                                validation_data=(x_val, y_val),
-                                epochs=epochs, verbose=1,
-                                callbacks=callbacks_list)
-        elif model_id == 1:
-            for layer in model.layers:
-                layer.trainable = True
-            model.load_weights(weights_file)
-            model.fit_generator(data,
-                                validation_data=(x_val, y_val),
-                                epochs=epochs, verbose=1,
-                                shuffle=False,
-                                callbacks=callbacks_list)
+        # if model_id == 0:
+        model.fit_generator(data,
+                            validation_data=(x_val, y_val),
+                            epochs=epochs, verbose=1,
+                            callbacks=callbacks_list)
+        # elif model_id == 1:
+        #      for layer in model.layers:
+        #          layer.trainable = True
+        #      model.load_weights(weights_file)
+        #    model.fit_generator(data,
+        #                         validation_data=(x_val, y_val),
+        #                         epochs=epochs, verbose=1,
+        #                         shuffle=False,
+        #                         callbacks=callbacks_list)
 
         # score = model.evaluate(x_train, y_train, verbose=0)
         # print('Train loss:', score[0])

@@ -1,10 +1,10 @@
 set -x
 run_fashionmnist ()
 {
-    interval=50
+    interval=100
     model_id=$1
     shift
-    for i in $(seq 0 $interval 49)
+    for i in $(seq 0 $interval 19)
     do
         if [ "$#" -gt 2 ] && [ "$2" == "-f" ] && [ "$3" == "-o" ]
         then
@@ -33,8 +33,8 @@ run_all()
 {
     model_id=$1
     #run_fashionmnist ${model_id} original
-    run_fashionmnist $model_id replace30
-    #run_fashionmnist $model_id replace_worst_of_10
+    #run_fashionmnist $model_id replace30
+    run_fashionmnist $model_id replace_worst_of_10
     #run_fashionmnist $model_id ga_loss
 
     #run_fashionmnist $model_id replace_worst_of_10 -o
@@ -49,5 +49,5 @@ run_all()
     #run_fashionmnist $model_id ga_loss -f -o
 }
 
-#run_all 0
-run_all 1
+run_all 0
+#run_all 1

@@ -7,6 +7,7 @@ Time: Sep, 21, 2018
 from dataset.gtsrb.train import GtsrbModel
 from dataset.cifar10.train import Cifar10Model
 from dataset.fashionmnist.train import FashionMnist
+from dataset.svhn.train import SVHN
 from perturbator import Perturbator
 from config import ExperimentalConfig
 from util import SAT, SAU, DATASET, logger
@@ -191,9 +192,6 @@ class AttackModel:
                     for p2 in self.config.translate_range[::3]:
                         for p2_v in self.config.translate_range[::3]:
                             for p3 in self.config.shear_range[::20]:
-                    # for p1 in self.config.rotation_range[::6]:
-                    #     for p2 in self.config.translate_range[::2]:
-                    #         for p3 in self.config.shear_range[::4]:
                                 if self.config.enable_filters:
                                     for p4 in self.config.zoom_range[::10]:
                                         for p5 in self.config.blur_range[::1]:
@@ -237,6 +235,7 @@ class AttackModel:
 
         else:
             raise Exception("Unsupported attack strategy")
+        del model
 
 
 if __name__ == '__main__':
@@ -250,7 +249,7 @@ if __name__ == '__main__':
                         help='enable filter transformation operators (zoom, blur, contrast, brightness)')
     parser.add_argument('-o', '--optimize', action='store_true', dest='enable_optimize',
                         help='enable optimize')
-    parser.add_argument('-m', '--model', dest='model', type=int, nargs='+', default=0,
+    parser.add_argument('-m', '--model', dest='model', type=int, nargs='+', default=[0],
                         help='selection of model')
 
     args = parser.parse_args()
@@ -284,6 +283,8 @@ if __name__ == '__main__':
         target0 = Cifar10Model()
     elif dat.value == DATASET.fashionmnist.value:
         target0 = FashionMnist()
+    elif dat.value == DATASET.svhn.value:
+        target0 = SVHN()
     else:
         raise Exception('unsupported dataset', dataset)
 

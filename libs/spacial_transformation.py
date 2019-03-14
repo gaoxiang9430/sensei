@@ -7,12 +7,6 @@ import pickle
 import imutils
 
 
-def hamming2(s1, s2):
-    """Calculate the Hamming distance between two bit strings"""
-    assert len(s1) == len(s2)
-    return sum(c1 != c2 for c1, c2 in zip(s1, s2))
-
-
 def image_translation_cropped(img, params, params2=0):
     if len(img.shape) == 2:
         rows, cols = img.shape

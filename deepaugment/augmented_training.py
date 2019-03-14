@@ -6,6 +6,7 @@ Time: Sep, 21, 2018
 
 from dataset.gtsrb.train import GtsrbModel
 from dataset.cifar10.train import Cifar10Model
+from dataset.svhn.train import SVHN
 from dataset.fashionmnist.train import FashionMnist
 import argparse
 from config import ExperimentalConfig
@@ -24,10 +25,11 @@ class AugmentedModel:
 
         # data_generator = DataGenerator(self.target, _model, x_train, y_train, 32, strategy)
         # data_generator = None
-        self.target.train_dnn_model(_model=_model,
-                                    x_train=x_train, y_train=y_train,
-                                    x_val=x_val, y_val=y_val,
-                                    train_strategy=strategy)
+        model = self.target.train_dnn_model(_model=_model,
+                                            x_train=x_train, y_train=y_train,
+                                            x_val=x_val, y_val=y_val,
+                                            train_strategy=strategy)
+        del model
 
     def test(self, _model=None):
         x_test, y_test = self.target.load_original_test_data()
@@ -43,7 +45,7 @@ if __name__ == '__main__':
                         help='the name of dataset, support dataset:' + str(DATASET.list()))
     parser.add_argument('-q', '--queue', dest='queue', type=int, nargs='+', default=4,
                         help='the length of queue for genetic algorithm (default 10)')
-    parser.add_argument('-m', '--model', dest='model', type=int, nargs='+', default=0,
+    parser.add_argument('-m', '--model', dest='model', type=int, nargs='+', default=[0],
                         help='selection of model')
     parser.add_argument('-t', '--start-point', dest='start_point', type=int, nargs='+', default=0,
                         help='the start point of epoch (default from epoch 0)')
@@ -91,6 +93,8 @@ if __name__ == '__main__':
         target0 = Cifar10Model(start_point, epoch)
     elif dat.value == DATASET.fashionmnist.value:
         target0 = FashionMnist(start_point, epoch)
+    elif dat.value == DATASET.svhn.value:
+        target0 = SVHN("data", start_point, epoch)
     else:
         raise Exception('unsupported dataset', dataset)
 

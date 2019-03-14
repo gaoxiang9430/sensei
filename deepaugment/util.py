@@ -61,6 +61,7 @@ class DATASET(Enum):
     gtsrb = 1
     cifar10 = 2
     fashionmnist = 3
+    svhn = 4
 
     @staticmethod
     def list():

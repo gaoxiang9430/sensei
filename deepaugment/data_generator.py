@@ -291,18 +291,23 @@ class DataGenerator(keras.utils.Sequence):
             self.predict_time += time.time() - s_time
 
             x_origin = x_10[0]
-            y_argmax = np.argsort(loss_all, axis=0)[-2:][::-1]
-            logger.debug("length of y_argmax: " + str(len(y_argmax[0])))
-            for j in range(len(y_argmax[0])):
-                index = y_argmax[0][j]
+            if self.strategy.value == SAU.ga_loss.value:
+                y_argmax = np.argsort(loss_all, axis=0)[-2:][::-1]
+            else:
+                y_argmax = np.argmax(loss_all, axis=0)
 
+            for j in range(len(x_origin)):
                 if self.strategy.value == SAU.ga_loss.value:
+                    index = y_argmax[0][j]
+
                     true_label = int(np.argmax(y[j]))
                     predict_label = int(np.argmax(y_pred_all[index][j]))
                     if true_label != predict_label and self.label_record[true_label][predict_label] > 1000:
                         index = y_argmax[1][j]
                         predict_label = np.argmax(y_pred_all[index][j])
                     self.label_record[true_label][predict_label] += 1
+                else:
+                    index = y_argmax[j]
 
                 if index != 0:
                     x_origin[j] = x_10[index][j]

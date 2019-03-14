@@ -164,6 +164,9 @@ class FashionMnist:
         train a dnn model on gstrb dataset based on train strategy
         """
         # training config
+
+        tf.keras.backend.clear_session()
+
         epochs = self.epoch
         batch_size = self.batch_size
 
@@ -189,7 +192,7 @@ class FashionMnist:
         '''
 
         if train_strategy is None:
-            x_train = md.preprocess_original_imgs(x_train)
+            x_train = self.preprocess_original_imgs(x_train)
             data = self.datagen_rotation.flow(x_train, y_train, batch_size=batch_size)
         else:
             graph = tf.get_default_graph()
@@ -200,7 +203,6 @@ class FashionMnist:
                             validation_data=(x_val, y_val),
                             epochs=epochs, verbose=1,
                             callbacks=callbacks_list)
-
         return model
 
     def load_model(self, model_id=0, weights_file='gtsrb.hdf5'):

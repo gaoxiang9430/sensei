@@ -24,7 +24,7 @@ run_cifar ()
 }
 
 
-#run_cifar original
+run_cifar original
 #run_cifar replace30
 #run_cifar replace40
 #run_cifar replace_worst_of_10
