@@ -8,6 +8,7 @@ from dataset.gtsrb.train import GtsrbModel
 from dataset.cifar10.train import Cifar10Model
 from dataset.svhn.train import SVHN
 from dataset.fashionmnist.train import FashionMnist
+from dataset.imdb.train import IMDBModel
 import argparse
 from config import ExperimentalConfig
 from util import SAU, DATASET, logger
@@ -95,6 +96,8 @@ if __name__ == '__main__':
         target0 = FashionMnist(start_point, epoch)
     elif dat.value == DATASET.svhn.value:
         target0 = SVHN("data", start_point, epoch)
+    elif dat.value == DATASET.imdb.value:
+        target0 = IMDBModel("dataset", start_point, epoch)
     else:
         raise Exception('unsupported dataset', dataset)
 

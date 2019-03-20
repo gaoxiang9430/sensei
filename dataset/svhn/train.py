@@ -38,7 +38,7 @@ class SVHN:
 
         self.num_classes = 10
         self.name = "svhn"
-        self.batch_size = 128
+        self.batch_size = 64
         self.image_size = 32
         self.input_shape = (self.image_size, self.image_size, 3)
         print("running 1.5")
@@ -100,46 +100,82 @@ class SVHN:
         return (x_train, y_train), (x_test, y_test)
 
     # build the classification model
-    def def_model(self):
-        input_shape = self.input_shape
-        model = Sequential()
-        model.add(Conv2D(32, kernel_size=3, input_shape=input_shape, padding="same"))
-        model.add(BatchNormalization())
-        model.add(Activation('relu'))
-        model.add(Conv2D(32, 3, padding="same"))
-        model.add(BatchNormalization())
-        model.add(Activation('relu'))
-        model.add(MaxPooling2D(pool_size=2))
-        model.add(Dropout(0.3))
+    def def_model(self, model_id):
+        if model_id == 0:
+            input_shape = self.input_shape
+            model = Sequential()
+            model.add(Conv2D(32, kernel_size=3, input_shape=input_shape, padding="same"))
+            model.add(BatchNormalization())
+            model.add(Activation('relu'))
+            model.add(Conv2D(32, 3, padding="same"))
+            model.add(BatchNormalization())
+            model.add(Activation('relu'))
+            model.add(MaxPooling2D(pool_size=2))
+            model.add(Dropout(0.3))
 
-        model.add(Conv2D(64, 3))
-        model.add(BatchNormalization())
-        model.add(Activation('relu'))
-        model.add(Conv2D(64, 3, padding="same"))
-        model.add(BatchNormalization())
-        model.add(Activation('relu'))
-        model.add(MaxPooling2D(pool_size=2))
-        model.add(Dropout(0.3))
+            model.add(Conv2D(64, 3))
+            model.add(BatchNormalization())
+            model.add(Activation('relu'))
+            model.add(Conv2D(64, 3, padding="same"))
+            model.add(BatchNormalization())
+            model.add(Activation('relu'))
+            model.add(MaxPooling2D(pool_size=2))
+            model.add(Dropout(0.3))
 
-        model.add(Conv2D(128, 3))
-        model.add(BatchNormalization())
-        model.add(Activation('relu'))
-        model.add(Conv2D(128, 3, padding="same"))
-        model.add(BatchNormalization())
-        model.add(Activation('relu'))
-        model.add(MaxPooling2D(pool_size=2))
-        model.add(Dropout(0.3))
+            model.add(Conv2D(128, 3))
+            model.add(BatchNormalization())
+            model.add(Activation('relu'))
+            model.add(Conv2D(128, 3, padding="same"))
+            model.add(BatchNormalization())
+            model.add(Activation('relu'))
+            model.add(MaxPooling2D(pool_size=2))
+            model.add(Dropout(0.3))
 
-        model.add(Flatten())
-        model.add(Dense(512, activation='relu'))
-        model.add(Dropout(0.3))
-        model.add(Dense(10, activation='softmax'))
+            model.add(Flatten())
+            model.add(Dense(512, activation='relu'))
+            model.add(Dropout(0.3))
+            model.add(Dense(10, activation='softmax'))
 
-        lr = 1e-3
-        model.compile(loss=keras.losses.categorical_crossentropy,
-                      optimizer=keras.optimizers.Adam(lr=lr),
-                      metrics=['accuracy'])
-        return model
+            lr = 1e-3
+            model.compile(loss=keras.losses.categorical_crossentropy,
+                          optimizer=keras.optimizers.Adam(lr=lr),
+                          metrics=['accuracy'])
+            return model
+        else:
+            model = Sequential()  # https://github.com/yh1008/deepLearning
+
+            model.add(Conv2D(32, 3, 3, border_mode='same',
+                             input_shape=self.input_shape))
+            model.add(Activation('relu'))
+            model.add(Conv2D(32, 3, 3))
+            model.add(Activation('relu'))
+            model.add(MaxPooling2D(pool_size=(2, 2)))
+
+            model.add(Conv2D(64, 3, 3, border_mode='same'))
+            model.add(Activation('relu'))
+            model.add(Conv2D(64, 3, 3))
+            model.add(Activation('relu'))
+            model.add(MaxPooling2D(pool_size=(2, 2)))
+            model.add(Dropout(0.2))
+            model.add(Flatten())
+
+            model.add(BatchNormalization(epsilon=0.001, axis=-1, momentum=0.99, weights=None, beta_init='zero',
+                                         gamma_regularizer=None, beta_regularizer=None))
+            model.add(Activation('relu'))
+            model.add(BatchNormalization(epsilon=0.001, axis=-1, momentum=0.99, weights=None, beta_init='zero',
+                                         gamma_regularizer=None, beta_regularizer=None))
+            model.add(Activation('relu'))
+
+            model.add(Dense(1024))
+            model.add(Activation('relu'))
+            model.add(Dropout(0.2))
+            model.add(Dense(self.num_classes))
+            model.add(Activation('softmax'))
+
+            model.compile(loss=keras.losses.categorical_crossentropy,
+                          optimizer="adam",
+                          metrics=['accuracy'])
+            return model
 
     def train_dnn_model(self, _model=[0, "models/svhn.hdf5"], x_train=None, y_train=None,
                         x_val=None, y_val=None, train_strategy=None):
@@ -154,11 +190,11 @@ class SVHN:
 
         k.set_image_data_format('channels_last')
 
-        # model_id = _model[0]
+        model_id = _model[0]
         weights_file = _model[1]
         weights_file = os.path.join(self.script_path, weights_file)
 
-        model = self.def_model()
+        model = self.def_model(model_id)
         if self.start_point > 0:
             model.load_weights(weights_file)
 
@@ -188,7 +224,7 @@ class SVHN:
         return model
 
     def load_model(self, model_id=0, weights_file='svhn.hdf5'):
-        model = self.def_model()
+        model = self.def_model(model_id)
         weights_file = os.path.join(self.script_path, weights_file)
         if not os.path.isfile(weights_file):
             logger.fatal("You have not train the model yet, please train model first.")

@@ -82,7 +82,7 @@ class GtsrbModel:
         self.IMG_SIZE = 48
         self.epoch = epoch
         self.name = "gtsrb"
-        self.batch_size = 128
+        self.batch_size = 512
         self.input_shape = (self.IMG_SIZE, self.IMG_SIZE, 3)
         self.script_path = os.path.dirname(os.path.abspath(__file__))
         self.root_dir = os.path.join(self.script_path, source_dir)
@@ -240,6 +240,50 @@ class GtsrbModel:
                           optimizer=sgd,
                           metrics=['accuracy'])
             return model
+        elif model_id == 3:
+            model = Sequential()
+            model.add(
+                Conv2D(64, (3, 3), input_shape=input_shape, activation='relu', padding='same', name='block1_conv1'))
+            model.add(Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2'))
+            model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool'))
+
+            # Block 2
+            model.add(Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv1'))
+            model.add(Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv2'))
+            model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool'))
+
+            # Block 3
+            model.add(Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv1'))
+            model.add(Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv2'))
+            model.add(Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv3'))
+            model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool'))
+
+            # Block 4
+            model.add(Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1'))
+            model.add(Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2'))
+            model.add(Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv3'))
+            model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool'))
+
+            # Block 5
+            model.add(Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1'))
+            model.add(Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2'))
+            model.add(Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3'))
+            model.add(MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool'))
+
+            top_model = Sequential()
+            top_model.add(Flatten(input_shape=model.output_shape[1:]))
+            top_model.add(Dense(256, activation='relu'))
+            top_model.add(Dropout(0.5))
+            top_model.add(Dense(self.num_classes, activation='softmax'))
+            model.add(top_model)
+
+            lr = 0.01
+            sgd = keras.optimizers.SGD(lr=lr, decay=1e-6, momentum=0.9, nesterov=True)
+            model.compile(loss='categorical_crossentropy',
+                          optimizer=sgd,
+                          metrics=['accuracy'])
+            return model
+
         else:
             raise Exception("unsupported model")
 

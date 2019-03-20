@@ -48,6 +48,7 @@ run()
     #run_gtsrb $1 ga_loss -f -o
 }
 
-run 0
+#run 0
 #run 1
 #run 2
+run 3
