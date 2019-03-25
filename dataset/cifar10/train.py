@@ -15,14 +15,27 @@ from deepaugment.data_generator import DataGenerator
 from deepaugment.util import logger
 import cv2
 import numpy as np
-from keras.layers import Conv2D, Dense, Input, add, Activation, GlobalAveragePooling2D
+from keras.layers import Conv2D, Dense, Input, add, Activation, GlobalAveragePooling2D, AveragePooling2D
 from keras.models import Model
 from keras import optimizers, regularizers
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten
 from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
 from keras.initializers import he_normal
-from keras.applications.inception_v3 import InceptionV3
+from keras.applications.vgg19 import VGG19
+from keras.regularizers import l2
+
+IN_FILTERS = 16
+
+
+def scheduler(epoch):
+    if epoch < 60:
+        return 0.1
+    if epoch < 120:
+        return 0.02
+    if epoch < 160:
+        return 0.004
+    return 0.0008
 
 
 def residual_network(img_input, classes_num=10, stack_n=5, weight_decay=1e-4):
@@ -84,140 +97,135 @@ def residual_network(img_input, classes_num=10, stack_n=5, weight_decay=1e-4):
     return model
 
 
-def vgg_model(input_shape):
+def vgg_model(input_shape, num_classes):
     # Build the network of vgg for 10 classes with massive dropout and weight decay as described in the paper.
-    # from https://keras.io/examples/cifar10_cnn/
+    """
+    model with batch normalization
+    https://github.com/xitizzz/Traffic-Sign-Recognition-using-Deep-Neural-Network
+    """
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), padding='same',
-                     input_shape=input_shape))
-    model.add(Activation('relu'))
-    model.add(Conv2D(32, (3, 3)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
+    BatchNormalization(epsilon=1e-06, momentum=0.99, weights=None)
 
-    model.add(Conv2D(64, (3, 3), padding='same'))
-    model.add(Activation('relu'))
-    model.add(Conv2D(64, (3, 3)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
+    # Block 1 Convolution layer 1,2  Normalization layer 3
+    model.add(Conv2D(32, (3, 3), padding='same', input_shape=input_shape, activation='relu'))
+    model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(BatchNormalization())
+    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    model.add(Dropout(0.2))
 
+    # Block 1 Convolution layer 4,5  Normalization layer 6
+    model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+    model.add(Conv2D(64, (3, 3), activation='relu'))
+    model.add(BatchNormalization())
+    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    model.add(Dropout(0.2))
+
+    # Block 1 Convolution layer 7,8  Normalization layer 9
+    model.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
+    model.add(Conv2D(128, (3, 3), activation='relu'))
+    model.add(BatchNormalization())
+    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    model.add(Dropout(0.2))
+
+    # Block 5 Fully-connected layer 10, Normalization layer 11,  Output layer 12
     model.add(Flatten())
-    model.add(Dense(512))
-    model.add(Activation('relu'))
+    model.add(Dense(512, activation='relu'))
     model.add(Dropout(0.5))
-    model.add(Dense(10))
-    model.add(Activation('softmax'))
+    model.add(BatchNormalization())
+    model.add(Dense(num_classes, activation='softmax'))
 
-    # initiate RMSprop optimizer
     opt = keras.optimizers.SGD(lr=0.0001, decay=1e-6)
 
-    # Let's train the model using RMSprop
     model.compile(loss='categorical_crossentropy',
                   optimizer=opt,
                   metrics=['accuracy'])
-
     return model
 
 
-def vgg_model2(input_shape, num_classes):
-    # Build the network of vgg for 10 classes with massive dropout and weight decay as described in the paper.
-
-    model = Sequential()
+def wide_residual_network(input_shape, num_class):
     weight_decay = 0.0005
+    depth = 28
+    k = 10
+    n_filters = [16, 16 * k, 32 * k, 64 * k]
+    n_stack = (depth - 4) // 6
 
-    model.add(Conv2D(64, (3, 3), padding='same',
-                     input_shape=input_shape, kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.3))
+    def conv3x3(x, filters):
+        return Conv2D(filters=filters, kernel_size=(3, 3), strides=(1, 1), padding='same',
+                      kernel_initializer='he_normal',
+                      kernel_regularizer=l2(weight_decay),
+                      use_bias=False)(x)
 
-    model.add(Conv2D(64, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(BatchNormalization())
+    def bn_relu(x):
+        x = BatchNormalization(momentum=0.9, epsilon=1e-5)(x)
+        x = Activation('relu')(x)
+        return x
 
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+    def residual_block(x, out_filters, increase=False):
+        global IN_FILTERS
+        stride = (1, 1)
+        if increase:
+            stride = (2, 2)
 
-    model.add(Conv2D(128, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.4))
+        o1 = bn_relu(x)
 
-    model.add(Conv2D(128, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(BatchNormalization())
+        conv_1 = Conv2D(out_filters,
+                        kernel_size=(3, 3), strides=stride, padding='same',
+                        kernel_initializer='he_normal',
+                        kernel_regularizer=l2(weight_decay),
+                        use_bias=False)(o1)
 
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+        o2 = bn_relu(conv_1)
 
-    model.add(Conv2D(256, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.4))
+        conv_2 = Conv2D(out_filters,
+                        kernel_size=(3, 3), strides=(1, 1), padding='same',
+                        kernel_initializer='he_normal',
+                        kernel_regularizer=l2(weight_decay),
+                        use_bias=False)(o2)
+        if increase or IN_FILTERS != out_filters:
+            proj = Conv2D(out_filters,
+                          kernel_size=(1, 1), strides=stride, padding='same',
+                          kernel_initializer='he_normal',
+                          kernel_regularizer=l2(weight_decay),
+                          use_bias=False)(o1)
+            block = add([conv_2, proj])
+        else:
+            block = add([conv_2, x])
+        return block
 
-    model.add(Conv2D(256, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.4))
+    def wide_residual_layer(x, out_filters, increase=False):
+        global IN_FILTERS
+        x = residual_block(x, out_filters, increase)
+        IN_FILTERS = out_filters
+        for _ in range(1, int(n_stack)):
+            x = residual_block(x, out_filters)
+        return x
 
-    model.add(Conv2D(256, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(BatchNormalization())
+    img_input = Input(shape=input_shape)
+    x = conv3x3(img_input, n_filters[0])
+    x = wide_residual_layer(x, n_filters[1])
+    x = wide_residual_layer(x, n_filters[2], increase=True)
+    x = wide_residual_layer(x, n_filters[3], increase=True)
+    x = BatchNormalization(momentum=0.9, epsilon=1e-5)(x)
+    x = Activation('relu')(x)
+    x = AveragePooling2D((8, 8))(x)
+    x = Flatten()(x)
+    x = Dense(num_class,
+              activation='softmax',
+              kernel_initializer='he_normal',
+              kernel_regularizer=l2(weight_decay),
+              use_bias=False)(x)
 
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+    resnet = Model(img_input, x)
+    # set optimizer
+    sgd = optimizers.SGD(lr=.1, momentum=0.9, nesterov=True)
+    resnet.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
-    model.add(Conv2D(512, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.4))
-
-    model.add(Conv2D(512, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.4))
-
-    model.add(Conv2D(512, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(BatchNormalization())
-
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Conv2D(512, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.4))
-
-    model.add(Conv2D(512, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.4))
-
-    model.add(Conv2D(512, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(BatchNormalization())
-
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.5))
-
-    model.add(Flatten())
-    model.add(Dense(512,kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(BatchNormalization())
-
-    model.add(Dropout(0.5))
-    model.add(Dense(num_classes))
-    model.add(Activation('softmax'))
-
-    learning_rate = 0.1
-    lr_decay = 1e-6
-    sgd = optimizers.SGD(lr=learning_rate, decay=lr_decay, momentum=0.9, nesterov=True)
-    model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
-    return model
+    return resnet
 
 
-def inception(input_tensor, num_class):
+def vgg19(input_tensor, num_class):
 
-    base_model = InceptionV3(include_top=False, input_tensor=input_tensor, data_format='channels_first')
+    base_model = VGG19(include_top=False, input_tensor=input_tensor)
 
     x = base_model.output
     x = GlobalAveragePooling2D()(x)
@@ -351,22 +359,15 @@ class Cifar10Model:
         elif model_id == 1:
             model = residual_network(img_input, self.num_classes, 8, self.weight_decay)
         elif model_id == 2:
-            model = vgg_model(self.input_shape)
+            self.batch_size = 256
+            model = wide_residual_network(self.input_shape, self.num_classes)
+            change_lr = LearningRateScheduler(scheduler)
+            callbacks_list.append(change_lr)
         elif model_id == 3:
             model = residual_network(img_input, self.num_classes, 3, self.weight_decay)
-        elif model_id == 4:
-            model = inception(img_input, self.num_classes)
         else:
-            lr_drop = 20
-            learning_rate = 0.1
-
-            def lr_scheduler(epoch):
-                return learning_rate * (0.5 ** (epoch // lr_drop))
-
-            reduce_lr = keras.callbacks.LearningRateScheduler(lr_scheduler)
-            callbacks_list.append(reduce_lr)
-
-            model = vgg_model2(self.input_shape, self.num_classes)
+            logger.fatal("unsupported model id")
+            exit(2)
 
         if self.start_point > 0:
             model.load_weights(weights_file)
@@ -401,18 +402,17 @@ class Cifar10Model:
             img_input = Input(shape=self.input_shape)
             model = residual_network(img_input, self.num_classes, 8, self.weight_decay)
         elif model_id == 2:
-            model = vgg_model(self.input_shape)
+            self.batch_size = 256
+            model = wide_residual_network(self.input_shape, self.num_classes)
         elif model_id == 3:
             img_input = Input(shape=self.input_shape)
             model = residual_network(img_input, self.num_classes, 3, self.weight_decay)
-        elif model_id == 4:
-            img_input = Input(shape=self.input_shape)
-            model = inception(img_input, self.num_classes)
         else:
-            model = vgg_model2(self.input_shape, self.num_classes)
+            logger.fatal("unsupported model id")
+            exit(2)
 
-        sgd = optimizers.SGD(lr=.1, momentum=0.9, nesterov=True)
-        model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+        # sgd = optimizers.SGD(lr=.1, momentum=0.9, nesterov=True)
+        # model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
         weights_file = os.path.join(self.script_path, weights_file)
         if not os.path.isfile(weights_file):
@@ -426,3 +426,4 @@ class Cifar10Model:
             logger.info(print_label + ' - Test loss:' + str(score[0]))
             logger.info(print_label + ' - Test accuracy:' + str(score[1]))
         return score[0], score[1]
+

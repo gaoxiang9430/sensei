@@ -34,8 +34,8 @@ run_all()
     model_id=$1
     #run_imdb ${model_id} original
     #run_imdb $model_id replace30
-    #run_imdb $model_id replace_worst_of_10
-    run_imdb $model_id ga_loss
+    run_imdb $model_id replace_worst_of_10
+    #run_imdb $model_id ga_loss
 
     #run_imdb $model_id replace_worst_of_10 -o
     #run_imdb $model_id ga_loss -o
@@ -49,5 +49,6 @@ run_all()
     #run_imdb $model_id ga_loss -f -o
 }
 
-run_all 0
-#run_all 1
+#run_imdb 0 ga_loss
+#run_all 0
+run_all 1

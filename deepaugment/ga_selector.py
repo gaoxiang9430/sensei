@@ -8,8 +8,8 @@ import numpy as np
 
 
 class Item(object):
-    def __init__(self, transformation_para=None, data=None, loss=0):
-        self.data = data
+    def __init__(self, transformation_para=None, loss=0):
+        # self.data = data
         self.transformation_para = transformation_para
         self.loss = loss
 
@@ -87,12 +87,12 @@ class GASelect:
         for i in range(len(temp_x_original_train)):
             label = np.argmax(y_train[i])
             q = list()
-            q.append(Item(Transformation(), temp_x_original_train[i], 1)) # initialize loss as 1
+            q.append(Item(Transformation(), 1)) # initialize loss as 1
             for j in range(9):
-                img = copy.deepcopy(temp_x_original_train[i])
+                # img = copy.deepcopy(temp_x_original_train[i])
                 tr = self.gt.get_next_transformation(label)
-                mutated_img = self.pt.fix_perturb_img(img, *(tr.get_paras()))
-                q.append(Item(tr, mutated_img, 1))
+                # mutated_img = self.pt.fix_perturb_img(img, *(tr.get_paras()))
+                q.append(Item(tr, 1))
             #     angle = random.choice(config.rotation_range)
             #     translation = random.choice(config.translate_range)
             #     shear = random.choice(config.shear_range)
@@ -143,11 +143,11 @@ class GASelect:
 
             existing_trs = list(item.transformation_para for item in q)
             mutates = top_item.transformation_para.mutate(existing_trs, top_item.loss)
-            #q.remove(top_item)
+            # q.remove(top_item)
             for j in range(len(mutates)):
-                img = copy.deepcopy(self.x_train[i])
-                mutated_img = self.pt.fix_perturb_img(img, *(mutates[j].get_paras()))
-                q.append(Item(mutates[j], mutated_img, 1))
+                # img = copy.deepcopy(self.x_train[i])
+                # mutated_img = self.pt.fix_perturb_img(img, *(mutates[j].get_paras()))
+                q.append(Item(mutates[j], 1))
             # q.append(Item(Transformation(), copy.deepcopy(self.x_train[i]), 0))
         return is_robust, self.get_all_data(start, end)
 
@@ -175,18 +175,27 @@ class GASelect:
                                                              top_item.loss)
             # q.remove(top_item)
             for j in range(len(mutates)):
-                img = copy.deepcopy(self.x_train[i])
-                mutated_img = self.pt.fix_perturb_img(img, *(mutates[j].get_paras()))
-                q.append(Item(mutates[j], mutated_img, 1))
+                # img = copy.deepcopy(self.x_train[i])
+                # mutated_img = self.pt.fix_perturb_img(img, *(mutates[j].get_paras()))
+                q.append(Item(mutates[j], 1))
             # q.append(Item(Transformation(), copy.deepcopy(self.x_train[i]), 0))
         return is_robust, self.get_all_data(start, end)
+
+    def generate_attr(self, start_point, trs):
+        attr = []
+        for i in range(len(trs)):
+            img = copy.deepcopy(self.x_train[start_point+i])
+            mutated_image = self.pt.fix_perturb_img(img, *(trs[i].get_paras()))
+            attr.append(mutated_image)
+        return attr
 
     def get_all_data(self, start=0, end=-1):
         ret = []
         temp_queue_set = self.queue_set[start: end]
         logger.debug("the shape of queue set: " + str(np.array(temp_queue_set).shape))
         for i in range(len(temp_queue_set[0])):
-            attr = list(item.data for item in np.array(temp_queue_set)[:, i])
+            trs = list(item.transformation_para for item in np.array(temp_queue_set)[:, i])
+            attr = self.generate_attr(start, trs)
             ret.append(attr)
         return ret  # num_mutate * num_test
 
@@ -230,4 +239,5 @@ if __name__ == '__main__':
     import sys
     print sys.getsizeof(ga_selector)
 """
+
 

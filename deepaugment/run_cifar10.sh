@@ -3,8 +3,8 @@ run_cifar10 ()
 {
     model=$1
     shift
-    interval=200
-    for i in $(seq 0 $interval 199)
+    interval=100
+    for i in $(seq 0 $interval 99)
     do
         if [ "$#" -gt 2 ] && [ "$2" == "-f" ] && [ "$3" == "-o" ]
         then
@@ -49,8 +49,6 @@ run()
 }
 
 #run 1
-#run 2 #vgg
-run 3
-run 5
-run 4
+run 2 #wide-resnet
+#run 3
 #run 0

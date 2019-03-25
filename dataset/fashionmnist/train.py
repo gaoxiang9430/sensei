@@ -17,7 +17,7 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras import backend as k
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import ModelCheckpoint
-from skimage import color, exposure, transform
+from keras.layers import MaxPooling2D, Convolution2D, Activation, Dropout, Flatten, Dense, InputLayer
 import tensorflow as tf
 import cv2
 from deepaugment.data_generator import DataGenerator
@@ -25,6 +25,7 @@ from deepaugment.util import logger
 from deepaugment.config import ExperimentalConfig
 from keras.datasets import mnist, fashion_mnist
 from keras.constraints import maxnorm
+from keras.layers.normalization import BatchNormalization
 
 
 class FashionMnist:
@@ -91,7 +92,7 @@ class FashionMnist:
 
     def def_model(self, model_id=0):
         input_shape = self.input_shape
-        if model_id == 0:
+        if model_id == 0:  # vgg 16
             input_tensor = Input(shape=input_shape)
             x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1')(input_tensor)
             x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2')(x)
@@ -153,7 +154,37 @@ class FashionMnist:
             decay = lrate / self.epoch
             sgd = keras.optimizers.SGD(lr=lrate, momentum=0.9, decay=decay, nesterov=True)
             return_model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+        elif model_id == 2:
+            # https://github.com/cmasch/zalando-fashion-mnist/blob/master/Simple_Convolutional_Neural_Network_Fashion-MNIST.ipynb
+            cnn = Sequential()
 
+            cnn.add(InputLayer(input_shape=self.input_shape))
+
+            cnn.add(BatchNormalization())
+            cnn.add(Convolution2D(64, (4, 4), padding='same', activation='relu'))
+            cnn.add(MaxPooling2D(pool_size=(2, 2)))
+            cnn.add(Dropout(0.1))
+
+            cnn.add(Convolution2D(64, (4, 4), activation='relu'))
+            cnn.add(MaxPooling2D(pool_size=(2, 2)))
+            cnn.add(Dropout(0.3))
+
+            cnn.add(Flatten())
+
+            cnn.add(Dense(256, activation='relu'))
+            cnn.add(Dropout(0.5))
+
+            cnn.add(Dense(64, activation='relu'))
+            cnn.add(BatchNormalization())
+
+            cnn.add(Dense(self.num_classes, activation='softmax'))
+            cnn.compile(loss='categorical_crossentropy',
+                        optimizer=keras.optimizers.Adam(),
+                        metrics=['accuracy'])
+
+            return cnn
+        elif model_id == 3:
+            pass  # https://github.com/markjay4k/Fashion-MNIST-with-Keras/blob/master/pt%204%20-%20Deeper%20CNNs.ipynb
         else:
             raise Exception("unsupported model")
         return return_model

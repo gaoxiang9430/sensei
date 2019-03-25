@@ -118,6 +118,8 @@ class GtsrbModel:
     def def_model(self, model_id=0):
         input_shape = self.input_shape
         if model_id == 0:
+            # baseline Model
+            # https://github.com/xitizzz/Traffic-Sign-Recognition-using-Deep-Neural-Network
             oxford_model = Sequential()
             oxford_model.add(Conv2D(32, (3, 3), padding="same", activation="relu", input_shape=input_shape))
             oxford_model.add(Conv2D(32, (3, 3), activation="relu"))
@@ -149,7 +151,7 @@ class GtsrbModel:
                                  metrics=['accuracy'])
             return_model = oxford_model
             return return_model
-        elif model_id == 1:
+        elif model_id == 1:   # vgg16
             model = Sequential()
 
             # Block 1 Convolution layer 1,2

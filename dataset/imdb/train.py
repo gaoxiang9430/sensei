@@ -22,6 +22,8 @@ from deepaugment.util import logger
 from deepaugment.config import ExperimentalConfig
 from keras.applications.vgg16 import VGG16
 import h5py
+from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
+from keras.utils.training_utils import multi_gpu_model
 
 
 def cv2_preprocess_img(img, img_size):
@@ -40,7 +42,7 @@ class IMDBModel:
         self.start_point = start_point
 
         self.num_classes = 2
-        self.IMG_SIZE = 64
+        self.IMG_SIZE = 128
         self.epoch = epoch
         self.name = "imdb"
         self.batch_size = 64
@@ -95,6 +97,58 @@ class IMDBModel:
                           loss='categorical_crossentropy',
                           metrics=['accuracy'])
             return model
+        elif model_id == 1:
+            model = Sequential()
+
+            # Block 1 Convolution layer 1,2
+            model.add(Conv2D(64, (3, 3), padding='same', input_shape=self.input_shape, activation='relu',
+                             data_format='channels_last'))
+            model.add(Conv2D(64, (3, 3), activation='relu'))
+            model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+            # Block 2 Convolution layer 3,4
+            model.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
+            model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+            # Block 3 Convolution layer 5,6,7
+            model.add(Conv2D(256, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(256, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(256, (3, 3), padding='same', activation='relu'))
+            model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+            # Block 4 Convolution layer 8,9,10
+            model.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+            model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+            # Block 5 Convolution layer 11,12,13
+            model.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+            model.add(Conv2D(512, (3, 3), padding='same', activation='relu'))
+            model.add(MaxPooling2D((2, 2), strides=(2, 2), name='final_pool'))
+
+            # Block 5 Fully-connected layer 14,15 , Output layer 16
+            model.add(Flatten())
+            model.add(Dense(4096, activation='relu'))
+            model.add(Dropout(0.5))
+            model.add(Dense(4096, activation='relu'))
+            model.add(Dropout(0.5))
+            model.add(Dense(self.num_classes, activation='softmax'))
+            lr = 0.01
+            decay = 1e-6
+
+            #model = multi_gpu_model(model, 2)
+
+            sgd = keras.optimizers.SGD(lr=lr, decay=decay, momentum=0.9, nesterov=True)
+
+            model.compile(loss='categorical_crossentropy',
+                          optimizer=sgd,
+                          metrics=['accuracy'])
+
+            return model
+
         else:
             raise Exception("unsupported model")
 
@@ -214,4 +268,3 @@ if __name__ == '__main__':
     model = md.train_dnn_model(_model0,
                                x_train=md.preprocess_original_imgs(x_train), y_train=y_train,
                                x_val=md.preprocess_original_imgs(x_val), y_val=y_val)
-
