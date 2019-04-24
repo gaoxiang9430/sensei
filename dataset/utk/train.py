@@ -7,7 +7,6 @@ Time: Sep, 21, 2018
 from __future__ import print_function
 
 import os
-import glob
 import numpy as np
 import keras
 from keras.models import Model, Sequential
@@ -20,11 +19,10 @@ import cv2
 from deepaugment.data_generator import DataGenerator
 from deepaugment.util import logger
 from deepaugment.config import ExperimentalConfig
-from keras.applications.vgg16 import VGG16
-from keras.applications.vgg19 import VGG19
 import h5py
 from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
 from keras.utils.training_utils import multi_gpu_model
+from keras_squeezenet import SqueezeNet
 
 
 def cv2_preprocess_img(img, img_size):
@@ -33,25 +31,25 @@ def cv2_preprocess_img(img, img_size):
     return img
 
 
-class IMDBModel:
+class UTKModel:
     """ source dir is the relative path of gtsrb data set' """
 
-    def __init__(self, source_dir=None, start_point=0, epoch=30):
+    def __init__(self, source_dir="dataset", start_point=0, epoch=30):
 
         self.config = ExperimentalConfig.gen_config()
         # Config related to images in the gtsrb dataset
         self.start_point = start_point
 
-        self.num_classes = 2
-        self.IMG_SIZE = 128
+        self.num_classes = 8
+        self.IMG_SIZE = 227
         self.epoch = epoch
-        self.name = "imdb"
+        self.name = "utk"
         self.batch_size = 64
         self.input_shape = (self.IMG_SIZE, self.IMG_SIZE, 3)
         self.script_path = os.path.dirname(os.path.abspath(__file__))
         self.root_dir = os.path.join(self.script_path, source_dir)
 
-        (self.x_train, self.y_train), (self.x_test, self.y_test) = self.load_imdb_data(self.root_dir)
+        (self.x_train, self.y_train), (self.x_test, self.y_test) = self.load_utk_data(self.root_dir)
 
         if not os.path.isdir(self.root_dir):
             logger.fatal("Please download the dataset first.")
@@ -86,28 +84,12 @@ class IMDBModel:
         # self.input_shape = (image_size, image_size, 3)
         if model_id == 0:
             input_tensor = Input(shape=self.input_shape)
-            base_model = VGG16(weights='imagenet', include_top=False, input_tensor=input_tensor)
+            base_model = SqueezeNet(weights="imagenet", include_top=False, input_tensor=input_tensor)
             x = base_model.output
             x = GlobalAveragePooling2D()(x)
             x = Dense(1024, activation='relu')(x)
             predictions = Dense(self.num_classes, activation='softmax')(x)
             model = Model(inputs=base_model.input, outputs=predictions)
-            for layer in base_model.layers[:15]:
-                layer.trainable = False
-            model.compile(optimizer=keras.optimizers.SGD(lr=0.0001, momentum=0.9, decay=1e-6),
-                          loss='categorical_crossentropy',
-                          metrics=['accuracy'])
-            return model
-        elif model_id == 2:
-            input_tensor = Input(shape=self.input_shape)
-            base_model = VGG19(weights='imagenet', include_top=False, input_tensor=input_tensor)
-            x = base_model.output
-            x = GlobalAveragePooling2D()(x)
-            x = Dense(1024, activation='relu')(x)
-            predictions = Dense(self.num_classes, activation='softmax')(x)
-            model = Model(inputs=base_model.input, outputs=predictions)
-            for layer in base_model.layers[:15]:
-                layer.trainable = False
             model.compile(optimizer=keras.optimizers.SGD(lr=0.0001, momentum=0.9, decay=1e-6),
                           loss='categorical_crossentropy',
                           metrics=['accuracy'])
@@ -154,7 +136,7 @@ class IMDBModel:
             lr = 0.01
             decay = 1e-6
 
-            #model = multi_gpu_model(model, 2)
+            model = multi_gpu_model(model, 2)
 
             sgd = keras.optimizers.SGD(lr=lr, decay=decay, momentum=0.9, nesterov=True)
 
@@ -177,13 +159,13 @@ class IMDBModel:
         return list(self.x_test), self.y_test
 
     # load svhn data from the specified folder
-    def load_imdb_data(self, path):
-        f1 = h5py.File(path+'/train.h5', 'r')
+    def load_utk_data(self, path):
+        f1 = h5py.File(path+'/train_227.h5', 'r')
         x_train = f1["X"][:]
         y_train = f1["Y"][:]
         del f1
 
-        f2 = h5py.File(path+'/test.h5', 'r')
+        f2 = h5py.File(path+'/test_227.h5', 'r')
         x_test = f2["X"][:]
         y_test = f2["Y"][:]
         del f2
@@ -269,7 +251,7 @@ class IMDBModel:
 
 
 if __name__ == '__main__':
-    md = IMDBModel(source_dir='dataset')
+    md = UTKModel(source_dir='dataset')
 
     _models = [[0, "models/try1.hdf5"]]
     # 0.9616785431229115
@@ -280,7 +262,7 @@ if __name__ == '__main__':
     x_val, y_val = md.load_original_data('val')
     # x_original_test, y_original_test = md.load_original_test_data()
 
-    model = md.train_dnn_model(_model0,
-                               x_train=md.preprocess_original_imgs(x_train), y_train=y_train,
-                               x_val=md.preprocess_original_imgs(x_val), y_val=y_val)
+    md.train_dnn_model(_model0,
+                       x_train=md.preprocess_original_imgs(x_train), y_train=y_train,
+                       x_val=md.preprocess_original_imgs(x_val), y_val=y_val)
 

@@ -3,8 +3,8 @@ run_cifar10 ()
 {
     model=$1
     shift
-    interval=100
-    for i in $(seq 0 $interval 99)
+    interval=200
+    for i in $(seq 0 $interval 199)
     do
         if [ "$#" -gt 2 ] && [ "$2" == "-f" ] && [ "$3" == "-o" ]
         then
@@ -34,7 +34,8 @@ run()
     #run_cifar10 $1 original
     #run_cifar10 $1 replace30
     #run_cifar10 $1 replace_worst_of_10
-    run_cifar10 $1 ga_loss
+    #run_cifar10 $1 ga_loss
+    run_cifar10 $1 ga_cov
 
     #run_cifar10 $1 replace_worst_of_10 -o
     #run_cifar10 $1 ga_loss -o
@@ -48,7 +49,7 @@ run()
     #run_cifar10 $1 ga_loss -f -o
 }
 
-#run 1
+run 1
+run 3
+run 0
 run 2 #wide-resnet
-#run 3
-#run 0

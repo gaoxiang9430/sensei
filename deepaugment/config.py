@@ -12,6 +12,8 @@ class Config:
 
     num_processor = 56  # the number of process (for multiprocessing)
     coverage_threshold = 0.5  # differential coverage threshold
+    robust_threshold = 1e-2
+    robust_basedon_acc = True
 
     # to enable translation based on filter
     enable_filters = True  # zoom, blur, brightness, contrast
@@ -43,6 +45,7 @@ class Config:
         logger.info("coverage differential threshold : " + str(self.coverage_threshold))
         logger.info("enable transformation based on filter : " + str(self.enable_filters))
         logger.info("enable optimize : " + str(self.enable_optimize))
+        logger.info("robust_threshold : " + str(self.robust_threshold))
 
         logger.info("=============== translation config ===============")
         logger.info("rotation range : " + str(self.rotation_range))

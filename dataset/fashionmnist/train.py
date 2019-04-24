@@ -73,10 +73,13 @@ class FashionMnist:
         )
 
     def preprocess_original_imgs(self, x):
-        for i in range(len(x)):
-            x[i] = cv2.resize(x[i], (28, 28))
-        x = np.array(x).reshape(-1, 28, 28, 1).astype('float32') / 255.
-        return x
+        if len(np.asarray(x).shape) <= 3:
+            for i in range(len(x)):
+                x[i] = cv2.resize(x[i], (28, 28))
+            x = np.array(x).reshape(-1, 28, 28, 1).astype('float32') / 255.
+            return x
+        else:
+            return np.array(x).astype('float32') / 255.
 
     def load_original_test_data(self):
         y_test = keras.utils.to_categorical(self.y_test, self.num_classes)
@@ -267,3 +270,4 @@ if __name__ == '__main__':
 
     # model0 = md.load_model(_model0[0], _model0[1])
     # md.test_dnn_model(model0, "print ", md.preprocess_original_imgs(x_original_test), y_original_test)
+

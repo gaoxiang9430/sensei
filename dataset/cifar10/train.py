@@ -24,6 +24,7 @@ from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
 from keras.initializers import he_normal
 from keras.applications.vgg19 import VGG19
 from keras.regularizers import l2
+import keras.backend as k
 
 IN_FILTERS = 16
 
@@ -143,6 +144,7 @@ def vgg_model(input_shape, num_classes):
 
 
 def wide_residual_network(input_shape, num_class):
+
     weight_decay = 0.0005
     depth = 28
     k = 10
@@ -343,7 +345,6 @@ class Cifar10Model:
                         x_val=None, y_val=None, train_strategy=None):
         """train a dnn model on cifar-10 dataset based on train strategy"""
         # k.set_image_data_format('channels_last')
-
         model_id = _model[0]
         weights_file = _model[1]
         weights_file = os.path.join(self.script_path, weights_file)
@@ -359,7 +360,7 @@ class Cifar10Model:
         elif model_id == 1:
             model = residual_network(img_input, self.num_classes, 8, self.weight_decay)
         elif model_id == 2:
-            self.batch_size = 256
+            self.batch_size = 64
             model = wide_residual_network(self.input_shape, self.num_classes)
             change_lr = LearningRateScheduler(scheduler)
             callbacks_list.append(change_lr)
@@ -402,7 +403,7 @@ class Cifar10Model:
             img_input = Input(shape=self.input_shape)
             model = residual_network(img_input, self.num_classes, 8, self.weight_decay)
         elif model_id == 2:
-            self.batch_size = 256
+            self.batch_size = 64
             model = wide_residual_network(self.input_shape, self.num_classes)
         elif model_id == 3:
             img_input = Input(shape=self.input_shape)
@@ -426,4 +427,3 @@ class Cifar10Model:
             logger.info(print_label + ' - Test loss:' + str(score[0]))
             logger.info(print_label + ' - Test accuracy:' + str(score[1]))
         return score[0], score[1]
-

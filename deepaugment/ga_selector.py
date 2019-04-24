@@ -87,7 +87,7 @@ class GASelect:
         for i in range(len(temp_x_original_train)):
             label = np.argmax(y_train[i])
             q = list()
-            q.append(Item(Transformation(), 1)) # initialize loss as 1
+            q.append(Item(Transformation(), 1))  # initialize loss as 1
             for j in range(9):
                 # img = copy.deepcopy(temp_x_original_train[i])
                 tr = self.gt.get_next_transformation(label)
@@ -134,7 +134,7 @@ class GASelect:
             top_item = q[0]
 
             # already robust enough
-            if self.config.enable_optimize and top_item.loss < 1e-4:
+            if self.config.enable_optimize and top_item.loss < self.config.robust_threshold:
                 for j in range(6):
                     q.append(top_item)
                 is_robust.append(True)
@@ -161,7 +161,7 @@ class GASelect:
             top_item = q[0]
 
             # already robust enough
-            if self.config.enable_optimize and top_item.loss < 1e-4:
+            if self.config.enable_optimize and top_item.loss < self.config.robust_threshold:
                 for j in range(6):
                     q.append(top_item)
                 is_robust.append(True)
@@ -239,5 +239,4 @@ if __name__ == '__main__':
     import sys
     print sys.getsizeof(ga_selector)
 """
-
 

@@ -33,11 +33,12 @@ run()
 {
     #run_gtsrb $1 original
     #run_gtsrb $1 replace30
-    run_gtsrb $1 replace_worst_of_10
-    run_gtsrb $1 ga_loss
+    #run_gtsrb $1 replace_worst_of_10
+    #run_gtsrb $1 ga_loss
+    #run_gtsrb $1 ga_cov
 
     #run_gtsrb $1 replace_worst_of_10 -o
-    #run_gtsrb $1 ga_loss -o
+    run_gtsrb $1 ga_loss -o
 
     #run_gtsrb $1 original -f
     #run_gtsrb $1 replace30 -f
@@ -48,7 +49,7 @@ run()
     #run_gtsrb $1 ga_loss -f -o
 }
 
-#run 0
+run 0
 #run 1
 #run 2
-run 3
+#run 3

@@ -13,8 +13,8 @@ run_svhn ()
             python adversarial_attack.py --strategy $1 --dataset svhn -m $model_id -o -f 2>&1 | tee -a execution_svhn_${model_id}_$1_optimize_f.out
         elif [ "$#" -gt 1 ] && [ "$2" == "-f" ]
         then
-            rm execution_svhn_${model_id}_$1_f.out
-            python augmented_training.py --strategy $1 --dataset svhn -m $model_id -t $i -e $interval -f 2>&1 | tee -a execution_svhn_${model_id}_$1_f.out
+            #rm execution_svhn_${model_id}_$1_f.out
+            #python augmented_training.py --strategy $1 --dataset svhn -m $model_id -t $i -e $interval -f 2>&1 | tee -a execution_svhn_${model_id}_$1_f.out
             python adversarial_attack.py --strategy $1 --dataset svhn -m $model_id -f 2>&1 | tee -a execution_svhn_${model_id}_$1_f.out
         elif [ "$#" -gt 1 ] && [ "$2" == "-o" ]
         then
@@ -35,7 +35,8 @@ run_all()
     #run_svhn ${model_id} original
     #run_svhn $model_id replace30
     #run_svhn $model_id replace_worst_of_10
-    run_svhn $model_id ga_loss
+    #run_svhn $model_id ga_loss
+    run_svhn $model_id ga_cov
 
     #run_svhn $model_id replace_worst_of_10 -o
     #run_svhn $model_id ga_loss -o
@@ -49,5 +50,5 @@ run_all()
     #run_svhn $model_id ga_loss -f -o
 }
 
-#run_all 0
+run_all 0
 run_all 1

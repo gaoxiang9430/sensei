@@ -47,7 +47,7 @@ class DataGenerator(keras.utils.Sequence):
             self.ga_selector = GASelect(self.x_original_train, self.y_original_train, self.original_target)
         elif self.strategy.value == SAU.ga_cov.value:
             self.nc = NeuralCoverage(model)
-            self.ga_selector = GASelect(self.x_original_train, self.y_original_train)
+            self.ga_selector = GASelect(self.x_original_train, self.y_original_train, self.original_target)
         elif self.strategy.value == SAU.replace_worst_of_10_cov.value:
             self.nc = NeuralCoverage(model)
         elif self.strategy.value == SAU.replace_worst_of_10.value and self.config.enable_optimize:
@@ -94,7 +94,7 @@ class DataGenerator(keras.utils.Sequence):
                 x, loss = self.optimized_select_worst(x_10, y, self.prev_is_robust[start:end])
                 max_loss = np.max(loss, axis=0)
                 for j in range(len(max_loss)):
-                    if max_loss[j] < 1e-4:  # this node becomes robust
+                    if max_loss[j] < self.config.robust_threshold:  # this node becomes robust
                         self.is_robust[j+start] = True
             else:
                 x, loss = self.select_worst(x_10, y)
@@ -119,7 +119,7 @@ class DataGenerator(keras.utils.Sequence):
             self.x_train[start:end] = x
 
         elif self.strategy.value == SAU.ga_cov.value:
-            x_n = self.ga_selector.generate_next_population(start, end)  # num_population * num_test
+            is_robust, x_n = self.ga_selector.generate_next_population(start, end)  # num_population * num_test
             x, loss = self.generate_cov(x, x_n, y)
             self.ga_selector.fitness(loss, start, end)
             self.x_train[start:end] = x
@@ -280,16 +280,16 @@ class DataGenerator(keras.utils.Sequence):
             y_true = np.array(y, dtype='float64')
             loss_all = []
             y_pred_all = []
-
+            
             s_time = time.time()
             for i in range(num_perturb):
-                y_pred = self.model.predict_on_batch(np.asarray(x_10[i]))
+                y_pred = self.model.predict_on_batch(x_10[i])
                 y_pred = np.clip(np.array(y_pred, dtype='float64'), 1e-8, 1 - 1e-8)
                 loss = self.cross_entropy(y_pred, y_true)
                 y_pred_all.append(y_pred)
                 loss_all.append(loss)
             self.predict_time += time.time() - s_time
-
+        
             x_origin = x_10[0]
             if self.strategy.value == SAU.ga_loss.value:
                 y_argmax = np.argsort(loss_all, axis=0)[-2:][::-1]
@@ -335,21 +335,47 @@ class DataGenerator(keras.utils.Sequence):
             unrobust_y = np.array([y[j] for j in range(n) if not is_robust[j]])
 
             start_time = time.time()
-            for i in range(num_perturb):
-                if i == 0:
-                    y_pred = self.model.predict_on_batch(x_10[0])
-                    y_pred = np.clip(np.array(y_pred, dtype='float64'), 1e-8, 1 - 1e-8)
-                    loss = self.cross_entropy(y_pred, y_true)
-                    loss_all.append(loss)
-                else:
-                    x_10_i = x_10[i]
-                    x_10_i = [x_10_i[j] for j in range(n) if not is_robust[j]]
-                    y_pred = self.model.predict_on_batch(np.asarray(x_10_i))
-                    y_pred = np.clip(np.array(y_pred, dtype='float64'), 1e-8, 1 - 1e-8)
-                    unrobust_loss = self.cross_entropy(y_pred, unrobust_y)
-                    loss_all.append(unrobust_loss)
-
+            y_pred = self.model.predict_on_batch(x_10[0])
             self.predict_time += time.time() - start_time
+
+            y_pred = np.clip(np.array(y_pred, dtype='float64'), 1e-8, 1 - 1e-8)
+            loss = self.cross_entropy(y_pred, y_true)
+            loss_all.append(loss)
+
+            temp_x = []
+            for i in range(num_perturb-1):
+                x_10_i = x_10[i+1]
+                x_10_i = [x_10_i[j] for j in range(n) if not is_robust[j]]
+                temp_x += x_10_i
+
+            temp_x = np.array(temp_x)
+            len_temp_x = len(temp_x)
+            y_pred = []
+            for i in range(len_temp_x/n):
+                start = i*n
+                end = start + n
+                start_time = time.time()
+                y_pred_i = self.model.predict_on_batch(temp_x[start: end])
+                self.predict_time += time.time() - start_time
+                y_pred += list(y_pred_i)
+
+            remaining = len_temp_x % n
+            if remaining != 0:
+                start_time = time.time()
+                if len_temp_x >= n:
+                    y_pred_i = self.model.predict_on_batch(temp_x[-n:])
+                else:
+                    y_pred_i = self.model.predict_on_batch(temp_x[-remaining:])
+                self.predict_time += time.time() - start_time
+                y_pred += list(y_pred_i[-remaining:])
+
+            num_unrobust_node = len(y_pred) / (num_perturb - 1)
+            for i in range(num_perturb-1):
+                start = i * num_unrobust_node
+                end = start + num_unrobust_node
+                y_pred_i = np.clip(np.array(y_pred[start:end], dtype='float64'), 1e-8, 1 - 1e-8)
+                unrobust_loss = self.cross_entropy(y_pred_i, unrobust_y)
+                loss_all.append(unrobust_loss)
 
         # add fake loss for the robust node
         for i in range(n):
@@ -531,30 +557,30 @@ class DataGenerator(keras.utils.Sequence):
         """generate loss for each population"""
         for i in range(len(x_n)):
             x_n[i] = self.original_target.preprocess_original_imgs(x_n[i])
-        n = len(x_n[0])
+        # n = len(x_n[0])
         num_perturb = len(x_n)
+
         with self.graph.as_default():
-            x_10_temp = copy.copy(x_n)
-            shape = (n*num_perturb,)+self.original_target.input_shape
-            x_pre = np.concatenate((origin_x, np.asarray(x_10_temp).reshape(shape)), axis=0)
-            y_pre = list(y) * num_perturb
-            y_pre = np.array(y_pre, dtype='float32')
-            cov_diff = self.nc.compare_output2(x_pre, y_pre, n)
+            y_true = np.array(y, dtype='float64')
+            cov_all = []
+            o_1 = self.nc.generate_layer_output(self.original_target.preprocess_original_imgs(origin_x))
+            for i in range(num_perturb):
+                o_2 = self.nc.generate_layer_output(x_n[i])
+                cov = self.nc.compare_output(o_1, o_2)
 
-            cov_diff_all = np.asarray(cov_diff).reshape(num_perturb, n)
-            x_10 = np.asarray(x_n)
-            x_origin = x_10[0]
-            max_diff = cov_diff_all[0]
+                y_pred = self.model.predict_on_batch(x_n[i])
+                y_pred = np.clip(np.array(y_pred, dtype='float64'), 1e-8, 1 - 1e-8)
+                loss = self.cross_entropy(y_pred, y_true)
 
-            for i in range(1, num_perturb):
-                diff = cov_diff_all[1]
-                set_i = x_10[i]
+                cov_all.append(cov+1000*loss)
 
-                idx = (diff > max_diff)
-                max_diff = np.maximum(diff, max_diff)
-                idx = np.expand_dims(idx, axis=-1)
-                idx = np.expand_dims(idx, axis=-1)
-                idx = np.expand_dims(idx, axis=-1)  # shape (bsize, 1, 1, 1)
-                x_origin = np.where(idx, set_i, x_origin, )  # shape (bsize, 32, 32, 3)
+            x_origin = x_n[0]
 
-        return x_origin, cov_diff_all
+            y_argmax = np.argmax(cov_all, axis=0)
+
+            for j in range(len(x_origin)):
+                index = y_argmax[j]
+                x_origin[j] = x_n[index][j]
+
+        return x_origin, cov_all
+

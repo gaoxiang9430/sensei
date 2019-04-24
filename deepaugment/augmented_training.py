@@ -9,6 +9,7 @@ from dataset.cifar10.train import Cifar10Model
 from dataset.svhn.train import SVHN
 from dataset.fashionmnist.train import FashionMnist
 from dataset.imdb.train import IMDBModel
+from dataset.utk.train import UTKModel
 import argparse
 from config import ExperimentalConfig
 from util import SAU, DATASET, logger
@@ -83,9 +84,6 @@ if __name__ == '__main__':
     epoch = args.epoch[0]
     model_index = int(args.model[0])
 
-    ExperimentalConfig.save_config(config)
-    config.print_config()
-
     # initialize dataset
     dat = DATASET.get_name(dataset)
     if dat.value == DATASET.gtsrb.value:
@@ -96,10 +94,17 @@ if __name__ == '__main__':
         target0 = FashionMnist(start_point, epoch)
     elif dat.value == DATASET.svhn.value:
         target0 = SVHN("data", start_point, epoch)
+        config.brightness_range=[0]
+        config.contrast_range=[1]
     elif dat.value == DATASET.imdb.value:
         target0 = IMDBModel("dataset", start_point, epoch)
+    elif dat.value == DATASET.utk.value:
+        target0 = UTKModel("dataset", start_point, epoch)
     else:
         raise Exception('unsupported dataset', dataset)
+
+    ExperimentalConfig.save_config(config)
+    config.print_config()
 
     atm = AugmentedModel(target0)
 
@@ -107,7 +112,8 @@ if __name__ == '__main__':
                 + dataset + " dataset =========== ")
 
     _model_file = "models/" + dataset + aug_strategy + "_model"+str(model_index)+"_" + \
-                  str(config.enable_filters) + "_O_" + str(config.enable_optimize)+".hdf5"
+                  str(config.enable_filters) + "_O_" + str(config.enable_optimize) + \
+                  "_model_" + str(model_index) + ".hdf5"
     _model0 = [model_index, _model_file]
 
     atm.train(SAU.get_name(aug_strategy), _model0)

@@ -9,6 +9,7 @@ from dataset.cifar10.train import Cifar10Model
 from dataset.fashionmnist.train import FashionMnist
 from dataset.svhn.train import SVHN
 from dataset.imdb.train import IMDBModel
+from dataset.utk.train import UTKModel
 from perturbator import Perturbator
 from config import ExperimentalConfig
 from util import SAT, SAU, DATASET, logger
@@ -31,8 +32,11 @@ class AttackModel:
     def attack(self, strategy=SAT.random, _model=None, print_label=""):
         x_test, y_test = self.target.load_original_test_data()
         # x_test, y_test = self.target.load_original_data("train")
-        # x_test = x_test[0:1000]
-        # y_test = y_test[0:1000]
+        if self.config.enable_filters:
+            part_len = len(x_test)/4
+            x_test = x_test[0:part_len]
+            y_test = y_test[0:part_len]
+            
         model = self.target.load_model(_model[0], _model[1])
 
         pt = Perturbator()
@@ -272,8 +276,7 @@ if __name__ == '__main__':
     config = ExperimentalConfig.gen_config()
     config.enable_filters = args.enable_filter
     config.enable_optimize = args.enable_optimize
-    ExperimentalConfig.save_config(config)
-    config.print_config()
+
     model_index = int(args.model[0])
 
     # initialize dataset
@@ -286,10 +289,17 @@ if __name__ == '__main__':
         target0 = FashionMnist()
     elif dat.value == DATASET.svhn.value:
         target0 = SVHN()
+        config.brightness_range=[0]
+        config.contrast_range=[1]
     elif dat.value == DATASET.imdb.value:
         target0 = IMDBModel("dataset")
+    elif dat.value == DATASET.utk.value:
+        target0 = UTKModel("dataset")
     else:
         raise Exception('unsupported dataset', dataset)
+
+    ExperimentalConfig.save_config(config)
+    config.print_config()
 
     logger.info("=========== attack " + aug_strategy + " of "
                 + dataset + " dataset ===========")
@@ -297,7 +307,9 @@ if __name__ == '__main__':
     am = AttackModel(target=target0)
 
     _model_file = "models/" + dataset + aug_strategy + "_model"+str(model_index)+"_" + \
-                  str(config.enable_filters) + "_O_" + str(config.enable_optimize)+".hdf5"
+                  str(config.enable_filters) + "_O_" + str(config.enable_optimize) + \
+                  "_model_" + str(model_index) + ".hdf5"
+
     _model0 = [model_index, _model_file]
 
     print("===================== test " + aug_strategy + " =====================")

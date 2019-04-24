@@ -34,8 +34,9 @@ run_all()
     model_id=$1
     #run_fashionmnist ${model_id} original
     #run_fashionmnist $model_id replace30
-    run_fashionmnist $model_id replace_worst_of_10
+    #run_fashionmnist $model_id replace_worst_of_10
     #run_fashionmnist $model_id ga_loss
+    run_fashionmnist $model_id ga_cov
 
     #run_fashionmnist $model_id replace_worst_of_10 -o
     #run_fashionmnist $model_id ga_loss -o
@@ -50,4 +51,5 @@ run_all()
 }
 
 run_all 0
-#run_all 1
+run_all 1
+run_all 2 

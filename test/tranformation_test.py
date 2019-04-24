@@ -10,6 +10,7 @@ import cv2
 
 import libs.spacial_transformation as tr
 from dataset.gtsrb.train import GtsrbModel
+from dataset.svhn.train import SVHN
 import tensorflow as tf
 
 
@@ -75,15 +76,19 @@ def trans_tf(x, rot):
 
 if __name__ == '__main__':
 
-    md = GtsrbModel(source_dir='GTSRB')
+    md = SVHN()
     x_original_test, y_original_test = md.load_original_test_data()
     img = x_original_test[0]
+    print(img)
+    img = img*255
+    img = img.astype(int)
+    print(img)
     save_img(img, "origin")
     img = image_translate_test(x_original_test[0], -1, 1)
     save_img(img, "translate_m1")
     img = image_translate_test(x_original_test[0], 1, 2)
     save_img(img, "translate_1")
-    """
+    
     img = x_original_test[0]
     save_img(img, "origin")
     img = image_zoom_test(x_original_test[0], 1)
@@ -93,6 +98,7 @@ if __name__ == '__main__':
     img = image_zoom_test(x_original_test[0], 2)
     save_img(img, "zoom_2")
 
+    '''
     img = image_blur_test(x_original_test[0], 4)
     save_img(img, "blur_4")
     img = image_blur_test(x_original_test[0], 3)
@@ -103,6 +109,7 @@ if __name__ == '__main__':
     save_img(img, "blur_1")
     img = image_blur_test(x_original_test[0], 0)
     save_img(img, "blur_0")
+    '''
 
     img = image_brightness_test(x_original_test[0], -64)
     save_img(img, "brightness__128")
@@ -140,7 +147,7 @@ if __name__ == '__main__':
     height, width = img.shape[:2]
     print height, width
     save_img(img, "rotate_30")
-    """
+    
     # for i in range(0,1):
     #     img = tr.rotate_image(x_original_test[i], -30)
     #     save_img(img, "a"+str(i))
