@@ -71,9 +71,14 @@ class Transformation:
 
         mutated_params = []
         if self.config.enable_filters:
-            choice = random.sample(range(1, 126), 6)  # 0000001 - 1111110
+            choice = random.sample(range(1, 126), self.config.popsize)  # 0000001 - 1111110
         else:
-            choice = random.sample(range(1, 14), 6)   # 0001 - 1110
+            if self.config.popsize > 13:
+                choice = random.sample(range(1, 14), 13)   # 0001 - 1110
+                for i in range(0, self.config.popsize-13):
+                    choice.append(0)
+            else:
+                choice = random.sample(range(1, 14), self.config.popsize)   # 0001 - 1110
 
         for i in choice:
             rotation, translate, translate_v, shear, zoom, blur, brightness, contrast = self.get_paras()
@@ -112,7 +117,7 @@ class Transformation:
             self.config.translation_step['shear'] = 0.02
 
         mutated_params = []
-        for i in range(6):
+        for i in range(self.config.popsize):
             tr = self.mutate_node(self, existing_trs)
             mutated_params.append(tr)
             existing_trs.append(tr)

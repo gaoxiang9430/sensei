@@ -1,6 +1,7 @@
 set -x
 run_imdb ()
 {
+    rm /tmp/config*
     interval=50
     model_id=$1
     shift
@@ -35,10 +36,11 @@ run_all()
     #run_imdb ${model_id} original
     #run_imdb $model_id replace30
     #run_imdb $model_id replace_worst_of_10
-    #run_imdb $model_id ga_loss
+    run_imdb $model_id ga_loss
+    #run_imdb $model_id ga_cov
 
     #run_imdb $model_id replace_worst_of_10 -o
-    run_imdb $model_id ga_loss -o
+    #run_imdb $model_id ga_loss -o
 
     #run_imdb $model_id original -f
     #run_imdb $model_id replace30 -f
@@ -50,5 +52,5 @@ run_all()
 }
 
 run_all 2
-#run_all 1
+run_all 1
 #run_all 0

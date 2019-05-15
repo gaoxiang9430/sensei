@@ -1,6 +1,7 @@
 set -x
 run_utk ()
 {
+    rm /tmp/config*
     interval=50
     model_id=$1
     shift
@@ -35,8 +36,8 @@ run_all()
     #run_utk ${model_id} original
     #run_utk $model_id replace30
     #run_utk $model_id replace_worst_of_10
-    #run_utk $model_id ga_loss
-    run_utk $model_id ga_cov
+    run_utk $model_id ga_loss
+    #run_utk $model_id ga_cov
 
     #run_utk $model_id replace_worst_of_10 -o
     #run_utk $model_id ga_loss -o
@@ -51,4 +52,4 @@ run_all()
 }
 
 run_all 0
-#run_all 1
+run_all 1

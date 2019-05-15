@@ -50,7 +50,9 @@ class DataGenerator(keras.utils.Sequence):
             self.ga_selector = GASelect(self.x_original_train, self.y_original_train, self.original_target)
         elif self.strategy.value == SAU.replace_worst_of_10_cov.value:
             self.nc = NeuralCoverage(model)
-        elif self.strategy.value == SAU.replace_worst_of_10.value and self.config.enable_optimize:
+        #elif self.strategy.value == SAU.replace_worst_of_10.value and self.config.enable_optimize:
+ 
+        if self.config.enable_optimize:
             self.is_robust = [False] * len(x_original_train)
             self.prev_is_robust = [False] * len(x_original_train)
 
@@ -109,9 +111,13 @@ class DataGenerator(keras.utils.Sequence):
 
         elif self.strategy.value == SAU.ga_loss.value:
             is_robust, x_n = self.ga_selector.generate_next_population(start, end)  # num_population * num_test
-
+            if self.config.robust_basedon_acc:
+                is_robust = self.prev_is_robust[start:end]
             if self.config.enable_optimize:
-                x, loss = self.optimized_select_worst(x_n, y, is_robust)
+                x, loss, predict_true = self.optimized_select_worst(x_n, y, is_robust)
+                if self.config.robust_basedon_acc:
+                    for j in range(len(predict_true)):
+                        self.is_robust[j+start] = predict_true[j]
             else:
                 x, loss = self.select_worst(x_n, y)
 
@@ -133,9 +139,9 @@ class DataGenerator(keras.utils.Sequence):
 
         if self.config.enable_optimize:
             print("number of skipped node is: ", self.skipped_node, len(self.y_train))
-            if self.strategy.value == SAU.replace_worst_of_10.value:
-                self.prev_is_robust = copy.deepcopy(self.is_robust)
-                self.is_robust = [False] * len(self.x_original_train)
+            #if self.strategy.value == SAU.replace_worst_of_10.value:
+            self.prev_is_robust = copy.deepcopy(self.is_robust)
+            self.is_robust = [False] * len(self.x_original_train)
 
         print("prediction time is: ", self.predict_time)
         print("selection time is: ", self.total_time)
@@ -327,6 +333,7 @@ class DataGenerator(keras.utils.Sequence):
 
         logger.debug("original shape", np.shape(x_10))
         loss_all = []
+        predict_all = []
         self.skipped_node += np.sum(is_robust)
 
         # calculate the loss of each unrobust node
@@ -339,15 +346,20 @@ class DataGenerator(keras.utils.Sequence):
             self.predict_time += time.time() - start_time
 
             y_pred = np.clip(np.array(y_pred, dtype='float64'), 1e-8, 1 - 1e-8)
+            if self.config.robust_basedon_acc:
+                predict = np.argmax(y_pred, axis=1)
+                predict_all.append(predict)
             loss = self.cross_entropy(y_pred, y_true)
             loss_all.append(loss)
 
+            # collect the images that should be evaluate
             temp_x = []
             for i in range(num_perturb-1):
                 x_10_i = x_10[i+1]
                 x_10_i = [x_10_i[j] for j in range(n) if not is_robust[j]]
                 temp_x += x_10_i
 
+            # devide the images into batches
             temp_x = np.array(temp_x)
             len_temp_x = len(temp_x)
             y_pred = []
@@ -368,20 +380,32 @@ class DataGenerator(keras.utils.Sequence):
                     y_pred_i = self.model.predict_on_batch(temp_x[-remaining:])
                 self.predict_time += time.time() - start_time
                 y_pred += list(y_pred_i[-remaining:])
-
+       
             num_unrobust_node = len(y_pred) / (num_perturb - 1)
-            for i in range(num_perturb-1):
-                start = i * num_unrobust_node
-                end = start + num_unrobust_node
-                y_pred_i = np.clip(np.array(y_pred[start:end], dtype='float64'), 1e-8, 1 - 1e-8)
-                unrobust_loss = self.cross_entropy(y_pred_i, unrobust_y)
-                loss_all.append(unrobust_loss)
+            if num_unrobust_node>0:
+                for i in range(num_perturb-1):
+                    start = i * num_unrobust_node
+                    end = start + num_unrobust_node
+                    y_pred_i = np.clip(np.array(y_pred[start:end], dtype='float64'), 1e-8, 1 - 1e-8)
+                    if self.config.robust_basedon_acc and len(y_pred_i)>0:
+                        predict = np.argmax(y_pred_i, axis=1)
+                        predict_all.append(predict)
+                    unrobust_loss = self.cross_entropy(y_pred_i, unrobust_y)
+                    loss_all.append(unrobust_loss)
+            else:
+                for i in range(num_perturb-1):
+                    loss_all.append([])
+                    if self.config.robust_basedon_acc:
+                        predict_all.append([])
 
         # add fake loss for the robust node
         for i in range(n):
             if is_robust[i]:
                 for j in range(1, num_perturb):
                     loss_all[j] = np.insert(loss_all[j], i, 0)
+                    if self.config.robust_basedon_acc:
+                        predict_all[j] = np.insert(predict_all[j], i, predict_all[0][i])
+
 
         logger.debug("loss shape", np.shape(loss_all))
         max_loss = loss_all[0]
@@ -398,7 +422,17 @@ class DataGenerator(keras.utils.Sequence):
             idx = np.expand_dims(idx, axis=-1)  # shape (bsize, 1, 1, 1)
             x_origin = np.where(idx, set_i, x_origin, )  # shape (bsize, 32, 32, 3)
         self.total_time += time.time()-ss_time
-        return x_origin, loss_all
+
+        predict_acc = [True] * n
+        if self.config.robust_basedon_acc:
+            labels = np.argmax(y, axis=1)
+            for i in range(n):
+                for j in range(num_perturb):
+                    if predict_all[j][i] != labels[i]:
+                        predict_acc[i] = False
+                        break
+
+        return x_origin, loss_all, predict_acc
 
     def select_worst_cov_epoch(self, x_10=None, y=None):
         """select worst image based on neural coverage"""

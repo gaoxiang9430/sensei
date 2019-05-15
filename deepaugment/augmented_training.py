@@ -45,12 +45,14 @@ if __name__ == '__main__':
                         help='augmentation strategy, supported strategy:' + str(SAU.list()))
     parser.add_argument('-d', '--dataset', dest='dataset', type=str, nargs='+',
                         help='the name of dataset, support dataset:' + str(DATASET.list()))
-    parser.add_argument('-q', '--queue', dest='queue', type=int, nargs='+', default=4,
+    parser.add_argument('-q', '--queue', dest='queue', type=int, nargs='+', default=[4],
                         help='the length of queue for genetic algorithm (default 10)')
     parser.add_argument('-m', '--model', dest='model', type=int, nargs='+', default=[0],
                         help='selection of model')
     parser.add_argument('-t', '--start-point', dest='start_point', type=int, nargs='+', default=0,
                         help='the start point of epoch (default from epoch 0)')
+    parser.add_argument('-r', '--threshold', dest='threshold', type=int, nargs='+', default=[4],
+                        help='the loss threshold for selective augmentation')
     parser.add_argument('-e', '--epoch', dest='epoch', type=int, nargs='+', default=200,
                         help='the number of training epochs')
     parser.add_argument('-f', '--filter', action='store_true', dest='enable_filter',
@@ -77,12 +79,16 @@ if __name__ == '__main__':
 
     config = ExperimentalConfig.gen_config()
 
-    config.queue_len = args.queue
+    config.queue_len = int(0.4*args.queue[0])
+    if config.queue_len<2:
+        config.queue_len = 2
+    config.popsize = args.queue[0] - config.queue_len
     config.enable_filters = args.enable_filter
     config.enable_optimize = args.enable_optimize
     start_point = args.start_point[0]
     epoch = args.epoch[0]
     model_index = int(args.model[0])
+    config.robust_threshold = 0.1**int(args.threshold[0])
 
     # initialize dataset
     dat = DATASET.get_name(dataset)

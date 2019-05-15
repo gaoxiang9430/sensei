@@ -1,14 +1,6 @@
 dataset/gtsrb/GTSRB/
-dataset/gtsrb/models
-dataset/cifar10/models
-dataset/fashionmnist/models
-dataset/imagenet/models
-dataset/imagenet/train
-dataset/imagenet/val
-dataset/imagenet/tensorpack
-dataset/imagenet/backup
-dataset/imagenet/devkit
-dataset/imagenet/extract*
+dataset/*/models
+dataset/imagenet
 deepaugment/execution*
 experiment_data*
 *.pyc

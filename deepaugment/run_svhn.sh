@@ -1,6 +1,7 @@
 set -x
 run_svhn ()
 {
+    rm /tmp/config*
     interval=50
     model_id=$1
     shift
@@ -35,8 +36,8 @@ run_all()
     #run_svhn ${model_id} original
     #run_svhn $model_id replace30
     #run_svhn $model_id replace_worst_of_10
-    #run_svhn $model_id ga_loss
-    run_svhn $model_id ga_cov
+    run_svhn $model_id ga_loss
+    #run_svhn $model_id ga_cov
 
     #run_svhn $model_id replace_worst_of_10 -o
     #run_svhn $model_id ga_loss -o

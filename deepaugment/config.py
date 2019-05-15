@@ -7,16 +7,17 @@ import commands
 
 class Config:
     config = None
-    queue_len = 4  # config the size of queue for genetic algorithm
+    queue_len = 7  # config the size of queue for genetic algorithm
     prob_mutate = 0.6  # mutate probability
+    popsize = 8
 
     num_processor = 56  # the number of process (for multiprocessing)
     coverage_threshold = 0.5  # differential coverage threshold
-    robust_threshold = 1e-2
-    robust_basedon_acc = True
+    robust_threshold = 1e-4
+    robust_basedon_acc = False
 
     # to enable translation based on filter
-    enable_filters = True  # zoom, blur, brightness, contrast
+    enable_filters = False  # zoom, blur, brightness, contrast
     """ define translation range """
     rotation_range = range(-30, 31)  # [-30, 30, 1]       - 60
     # rotation_range is set to 15 for cifar 10
@@ -40,6 +41,7 @@ class Config:
     def print_config(self):
         logger.info("=============== global config ===============")
         logger.info("queue length : " + str(self.queue_len))
+        logger.info("population size : " + str(self.popsize))
         logger.info("mutate probability : " + str(self.prob_mutate))
         logger.info("the number of process (for multiprocessing) : " + str(self.num_processor))
         logger.info("coverage differential threshold : " + str(self.coverage_threshold))
