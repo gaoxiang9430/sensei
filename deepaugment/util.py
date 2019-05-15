@@ -12,11 +12,8 @@ class SAU(Enum):
     """supported_augmentation_strategy"""
     original = 1
     replace30 = 2
-    augment30 = 3
     replace40 = 4
-    augment40 = 5
     replace_worst_of_10 = 6
-    replace_worst_of_10_cov = 7
     ga_loss = 8
     ga_cov = 9
 

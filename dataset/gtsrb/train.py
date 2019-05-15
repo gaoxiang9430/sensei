@@ -394,6 +394,7 @@ class GtsrbModel:
         model.fit_generator(data,
                             validation_data=(x_val, y_val),
                             epochs=epochs, verbose=1,
+                            steps_per_epoch=len(x_train)/self.batch_size,
                             callbacks=callbacks_list)
         # elif model_id == 1:
         #      for layer in model.layers:
@@ -429,19 +430,19 @@ class GtsrbModel:
 
 if __name__ == '__main__':
     md = GtsrbModel(source_dir='GTSRB')
-       
+     
     _models = [(0, "models/gtsrb.oxford.model0.hdf5"), (1, "models/gtsrb.vgg16.model1.hdf5")]
     # 0.9616785431229115
     # 0.9038004751065754
     # 0.971496437026316
-    _model0 = _models[0]
-    # x_train, y_train = md.load_original_data('train')
-    # x_val, y_val = md.load_original_data('val')
+    _model = _models[0]
+    x_train, y_train = md.load_original_data('train')
+    x_val, y_val = md.load_original_data('val')
     x_original_test, y_original_test = md.load_original_test_data()
 
-    # model=md.train_dnn_model(model_id=_model[0],weights_file=_model[1],
-    #                          x_train=md.preprocess_original_imgs(x_train), y_train=y_train,
-    #                          x_val=md.preprocess_original_imgs(x_val), y_val=y_val)
+    model=md.train_dnn_model(_model,
+                             x_train=md.preprocess_original_imgs(x_train), y_train=y_train,
+                             x_val=md.preprocess_original_imgs(x_val), y_val=y_val)
 
-    model0 = md.load_model(_model0[0], _model0[1])
-    md.test_dnn_model(model0, md.preprocess_original_imgs(x_original_test), y_original_test)
+    #model0 = md.load_model(_model0[0], _model0[1])
+    #md.test_dnn_model(model0, md.preprocess_original_imgs(x_original_test), y_original_test)

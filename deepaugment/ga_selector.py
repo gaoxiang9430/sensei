@@ -86,35 +86,38 @@ class GASelect:
         self.x_train = x_train
         self.y_train = y_train
 
-        self.gt = GridTransformation(original_target.num_classes)
-        self.robust_measure = [RobustMeasure(0, False)] * len(x_train)
-        self.k = 2
+        # using grid strategy to init population
+        if not self.config.random_init:
+            self.gt = GridTransformation(original_target.num_classes)
   
         # generate first population
         temp_x_original_train = copy.deepcopy(x_train)
         for i in range(len(temp_x_original_train)):
             label = np.argmax(y_train[i])
             q = list()
+            # add original data to initial population
             q.append(Item(Transformation(), 1))  # initialize loss as 1
+
             for j in range(9):
-                
-                tr = self.gt.get_next_transformation(label)
-                q.append(Item(tr, 1))
-                '''
-                angle = random.choice(config.rotation_range)
-                translation = random.choice(config.translate_range)
-                shear = random.choice(config.shear_range)
-                # transformation based on filter
-                if config.enable_filters:
-                    zoom = random.choice(config.zoom_range)
-                    blur = random.choice(config.blur_range)
-                    brightness = random.choice(config.brightness_range)
-                    contrast = random.choice(config.contrast_range)
-                    tr = Transformation(angle, translation, shear, zoom, blur, brightness, contrast)
+                if self.config.random_init:
+                    # random init population
+                    angle = random.choice(config.rotation_range)
+                    translation = random.choice(config.translate_range)
+                    shear = random.choice(config.shear_range)
+                    # transformation based on filter
+                    if config.enable_filters:
+                        zoom = random.choice(config.zoom_range)
+                        blur = random.choice(config.blur_range)
+                        brightness = random.choice(config.brightness_range)
+                        contrast = random.choice(config.contrast_range)
+                        tr = Transformation(angle, translation, shear, zoom, blur, brightness, contrast)
+                    else:
+                        tr = Transformation(angle, translation, shear)
+                    q.append(Item(tr, 1))
                 else:
-                    tr = Transformation(angle, translation, shear)
-                q.append(Item(tr, 1))
-                '''
+                    tr = self.gt.get_next_transformation(label)
+                    q.append(Item(tr, 1))
+               
             self.queue_set.append(q)
 
     def generate_next_population(self, start=0, end=-1):
@@ -139,36 +142,21 @@ class GASelect:
             q = self.queue_set[i]
             top_item = q[0]
 
-            '''
-            if self.config.enable_optimize:
-                if not self.robust_measure[i].is_robust and top_item.loss < self.config.robust_threshold:
-                    self.robust_measure[i].is_robust = True
-                    self.robust_measure[i].iterate_num = 0
-                self.robust_measure[i].iterate_num += 1
-                if self.robust_measure[i].is_robust:
-                     if self.robust_measure[i].iterate_num>self.k:
-                         self.robust_measure[i].is_robust = False
-                         is_robust.append(False)
-                     else:
-                         is_robust.append(True)
-                         for j in range(self.config.popsize):
-                             q.append(top_item)
-                         continue
-                else:
-                    is_robust.append(False)
-            '''
-            # already robust enough
+            # check point-wise robustness
             if self.config.enable_optimize and top_item.loss < self.config.robust_threshold:
+                # add fake elements
                 for j in range(self.config.popsize):
                     q.append(top_item)
                 is_robust.append(True)
                 continue
             is_robust.append(False)
 
+            # generate children using mutation and update queue
             existing_trs = list(item.transformation_para for item in q)
-            mutates = top_item.transformation_para.mutate(existing_trs, top_item.loss)
-            for j in range(len(mutates)):
-                q.append(Item(mutates[j], 1))
+            children = top_item.transformation_para.mutate(existing_trs, top_item.loss)
+            for j in range(len(children)):
+                q.append(Item(children[j], 1))
+
         return is_robust, self.get_all_data(start, end)
 
     def crossover(self, start=0, end=-1):
@@ -180,25 +168,7 @@ class GASelect:
                 return self.mutate()
             top_item = q[0]
 
-            '''
-            if self.config.enable_optimize:
-                if not self.robust_measure[i].is_robust and top_item.loss < self.config.robust_threshold:
-                    self.robust_measure[i].is_robust = True
-                    self.robust_measure[i].iterate_num = 0
-                self.robust_measure[i].iterate_num += 1
-                if self.robust_measure[i].is_robust:
-                     if self.robust_measure[i].iterate_num>self.k:
-                         self.robust_measure[i].is_robust = False
-                         is_robust.append(False)
-                     else:
-                         is_robust.append(True)
-                         for j in range(self.config.popsize):
-                             q.append(top_item)
-                         continue
-                else:
-                    is_robust.append(False)
-            '''
-            # already robust enough
+            # check point-wise robustness
             if self.config.enable_optimize and top_item.loss < self.config.robust_threshold:
                 for j in range(self.config.popsize):
                     q.append(top_item)
@@ -206,13 +176,13 @@ class GASelect:
                 continue
             is_robust.append(False)
 
-            top_item_2 = self.select_item(top_item, q[1:])  # q[1]
-            # q.remove(top_item)
+            # generate children using crossover and update queue
+            top_item_2 = self.select_item(top_item, q[1:])
             existing_trs = list(item.transformation_para for item in q)
-            mutates = top_item.transformation_para.crossover(top_item_2.transformation_para, existing_trs,
+            children = top_item.transformation_para.crossover(top_item_2.transformation_para, existing_trs,
                                                              top_item.loss)
-            for j in range(len(mutates)):
-                q.append(Item(mutates[j], 1))
+            for j in range(len(children)):
+                q.append(Item(children[j], 1))
         return is_robust, self.get_all_data(start, end)
 
     def generate_attr(self, start_point, trs):
@@ -224,6 +194,7 @@ class GASelect:
         return attr
 
     def get_all_data(self, start=0, end=-1):
+        """ prepare data for feeding DNN """
         ret = []
         temp_queue_set = self.queue_set[start: end]
         logger.debug("the shape of queue set: " + str(np.array(temp_queue_set).shape))
@@ -236,7 +207,7 @@ class GASelect:
     def fitness(self, loss, start=0, end=-1):
         if end == -1:
             end = len(self.queue_set)
-        # logger.debug("update_queue - the shape of queue set: " + str(np.array(self.queue_set).shape))
+
         logger.debug("update_queue - the shape of loss: " + str(np.array(loss).shape))
         index = 0
         for i in range(start, end):         # for each test
@@ -253,6 +224,7 @@ class GASelect:
 
     @ staticmethod
     def select_item(top_item, queue):
+        """ select best item for crossover """
         maximal = 0
         top_item2 = queue[0]
         for item2 in queue:
@@ -261,16 +233,4 @@ class GASelect:
                 maximal = diff
                 top_item2 = item2
         return top_item2
-
-"""
-if __name__ == '__main__':
-    md = GtsrbModel("GTSRB")
-    x_train_origin, y_train_origin = md.load_original_data('train')
-    x_val_origin, y_val_origin = md.load_original_data('val')
-
-    ga_selector = GASelect(x_train_origin, y_train_origin)
-    ga_selector.mutate()
-    import sys
-    print sys.getsizeof(ga_selector)
-"""
 

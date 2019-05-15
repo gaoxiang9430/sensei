@@ -1,78 +1,62 @@
 set -x
-run_cifar10 ()
+
+dataset=cifar10
+epoch=200
+optimize=false
+operator=3
+
+run_all()
 {
-    rm /tmp/config*
-    model=$1
-    shift
-    queue=$1
-    shift
-    interval=200
-    for i in $(seq 0 $interval 199)
+    for model in 0 # 1 2 3
     do
-        if [ "$#" -gt 2 ] && [ "$2" == "-f" ] && [ "$3" == "-o" ]
-        then
-            rm execution_cifar10_${model}_$1_optimize_f.out
-            python augmented_training.py --strategy $1 --dataset cifar10 -m $model -q $queue -t $i -e $interval  -o -f 2>&1 | tee -a execution_cifar10_${model}_$1_optimize_f.out
-            python adversarial_attack.py --strategy $1 --dataset cifar10 -m $model -o -f 2>&1 | tee -a execution_cifar10_${model}_$1_optimize_f.out
-        elif [ "$#" -gt 1 ] && [ "$2" == "-f" ]
-        then
-            rm execution_cifar10_${model}_$1_f.out
-            python augmented_training.py --strategy $1 --dataset cifar10 -m $model -q $queue -t $i -e $interval -f 2>&1 | tee -a execution_cifar10_${model}_$1_f.out
-            python adversarial_attack.py --strategy $1 --dataset cifar10 -m $model -f 2>&1 | tee -a execution_cifar10_${model}_$1_f.out
-        elif [ "$#" -gt 1 ] && [ "$2" == "-o" ]
-        then
-            rm execution_cifar10_${model}_$1_optimize.out
-            python augmented_training.py --strategy $1 --dataset cifar10 -m $model -q $queue -t $i -e $interval -o 2>&1 | tee -a execution_cifar10_${model}_$1_optimize.out
-            python adversarial_attack.py --strategy $1 --dataset cifar10 -m $model -o 2>&1 | tee -a execution_cifar10_${model}_$1_optimize.out
-        else
-            rm execution_cifar10_${model}_$1_q_$queue.out
-            python augmented_training.py --strategy $1 --dataset cifar10 -m $model -q $queue -t $i -e $interval 2>&1 | tee -a execution_cifar10_${model}_$1_q${queue}.out
-            python adversarial_attack.py --strategy $1 --dataset cifar10 -m $model 2>&1 | tee -a execution_cifar10_${model}_$1_q${queue}.out
-        fi
+        for approach in replace_worst_of_10 # original replace30 replace_worst_of_10 ga_loss ga_cov 
+        do
+            log_file=execution_${dataset}_${model}_${approach}
+            if $optimize
+            then
+                flag=-o
+                log_file=${log_file}_optimize
+            elif [ $operator == 6 ]
+            then
+                flag=-f
+                log_file=${log_file}_operator6
+            fi
+            log_file=${log_file}.out
+
+            rm /tmp/config*
+            rm $log_file
+            python augmented_training.py --strategy $approach --dataset $dataset -m $model -t 0 -e ${epoch} $flag 2>&1 | tee -a $log_file
+            python adversarial_attack.py --strategy $approach --dataset $dataset -m $model $flag 2>&1 | tee -a $log_file
+        done
     done
 }
 
-run()
+various_loss_threshold()
 {
-    #run_cifar10 $1 10 original
-    #run_cifar10 $1 10 replace30
-    #run_cifar10 $1 10 replace_worst_of_10
-    run_cifar10 $1 10 ga_loss
-    #run_cifar10 $1 10 ga_cov
-
-    #run_cifar10 $1 10 replace_worst_of_10 -o
-    #run_cifar10 $1 10 ga_loss -o
-
-    #run_cifar10 $1 10 original -f
-    #run_cifar10 $1 10 replace30 -f
-    #run_cifar10 $1 10 replace_worst_of_10 -f
-    #run_cifar10 $1 10 ga_loss -f
-
-    #run_cifar10 $1 10 replace_worst_of_10 -f -o
-    #run_cifar10 $1 10 ga_loss -f -o
+    # threshold 1e-1, 1e-2 ... 1e-5
+    for i in 1 2 3 4 5
+    do
+        model=1
+        flag=-o
+        rm /tmp/config*
+        log_file=execution_${dataset}_${model}_ga_loss_t_${i}_${flag}.out
+        rm $log_file
+        python augmented_training.py --strategy ga_loss --dataset $dataset -m $model -r $i -t 0 -e ${epoch} $flag 2>&1 | tee -a $log_file
+        python adversarial_attack.py --strategy ga_loss --dataset $dataset -m $model $flag 2>&1 | tee -a $log_file
+    done
 }
 
-#run 1
-#run 3
-#run 0
-#run 2 #wide-resnet
+various_popsize()
+{
+    for queue in 3 5 10 15 20 30
+    do
+        model=1
+        log_file=execution_${dataset}_${model}_ga_loss_q_${queue}.out
+        rm /tmp/config*
+        rm $log_file
+        python augmented_training.py --strategy ga_loss --dataset $dataset -m $model -q $queue -t 0 -e ${epoch} 2>&1 | tee -a $log_file
+        python adversarial_attack.py --strategy ga_loss --dataset $dataset -m $model 2>&1 | tee -a $log_file
+    done
+}
 
-#run_cifar10 1 3 ga_loss
-#run_cifar10 1 5 ga_loss
-#run_cifar10 1 10 ga_loss
-#run_cifar10 1 15 ga_loss
-#run_cifar10 1 20 ga_loss
-#run_cifar10 1 30 ga_loss
-#run_cifar10 1 50 ga_loss
-
-for i in 1 5
-do
-    queue=10
-    model=1
-    dataset=cifar10
-    rm /tmp/config*
-    rm execution_${dataset}_${model}_ga_loss_t_${i}_optimize.out
-    python augmented_training.py --strategy ga_loss --dataset $dataset -m $model -r $i -q $queue -t 0 -e 200 -o 2>&1 | tee -a execution_${dataset}_${model}_ga_loss_t_${i}_optimize.out
-    python adversarial_attack.py --strategy ga_loss --dataset $dataset -m $model -o 2>&1 | tee -a execution_${dataset}_${model}_ga_loss_t_${i}_optimize.out
-done
-
+run_all

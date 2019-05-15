@@ -10,6 +10,7 @@ class Config:
     queue_len = 7  # config the size of queue for genetic algorithm
     prob_mutate = 0.6  # mutate probability
     popsize = 8
+    random_init = False # the population initialization strategy
 
     num_processor = 56  # the number of process (for multiprocessing)
     coverage_threshold = 0.5  # differential coverage threshold
@@ -68,11 +69,12 @@ class Config:
 
 class ExperimentalConfig:
     config = None
+    # get a system unique id for ubuntu system, 
+    # the system_id can be replaced by any unique system id or even a constant
     system_id = commands.getstatusoutput("ifconfig | grep eno1 | awk '{print $NF}' | sed 's/://g'")[1]
 
     @staticmethod
     def gen_config():
-        # get a system unique id
         if ExperimentalConfig.config is not None:
             return ExperimentalConfig.config
         elif os.path.isfile('/tmp/config' + ExperimentalConfig.system_id + '.pkl'):
@@ -85,10 +87,5 @@ class ExperimentalConfig:
 
     @staticmethod
     def save_config(config):
-        # get a system unique id
-        system_id = commands.getstatusoutput("ifconfig | grep eno1 | awk '{print $NF}' | sed 's/://g'")[1]
-
-        print("config optimize: " + str(config.enable_optimize))
-        print("config filter: " + str(config.enable_filters))
-        with open('/tmp/config' + system_id + '.pkl', 'wb') as output:
+        with open('/tmp/config' + ExperimentalConfig.system_id + '.pkl', 'wb') as output:
             pickle.dump(config, output, pickle.HIGHEST_PROTOCOL)

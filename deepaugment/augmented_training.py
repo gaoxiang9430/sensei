@@ -45,14 +45,14 @@ if __name__ == '__main__':
                         help='augmentation strategy, supported strategy:' + str(SAU.list()))
     parser.add_argument('-d', '--dataset', dest='dataset', type=str, nargs='+',
                         help='the name of dataset, support dataset:' + str(DATASET.list()))
-    parser.add_argument('-q', '--queue', dest='queue', type=int, nargs='+', default=[4],
+    parser.add_argument('-q', '--queue', dest='queue', type=int, nargs='+', default=[10],
                         help='the length of queue for genetic algorithm (default 10)')
     parser.add_argument('-m', '--model', dest='model', type=int, nargs='+', default=[0],
                         help='selection of model')
     parser.add_argument('-t', '--start-point', dest='start_point', type=int, nargs='+', default=0,
                         help='the start point of epoch (default from epoch 0)')
-    parser.add_argument('-r', '--threshold', dest='threshold', type=int, nargs='+', default=[4],
-                        help='the loss threshold for selective augmentation')
+    parser.add_argument('-r', '--threshold', dest='threshold', type=int, nargs='+', default=[3],
+                        help='the loss threshold for selective augmentation (default 1e-3)')
     parser.add_argument('-e', '--epoch', dest='epoch', type=int, nargs='+', default=200,
                         help='the number of training epochs')
     parser.add_argument('-f', '--filter', action='store_true', dest='enable_filter',
@@ -124,18 +124,3 @@ if __name__ == '__main__':
 
     atm.train(SAU.get_name(aug_strategy), _model0)
 
-    # _model0 = [0, "models/gtsrb.oxford.model.hdf5"]
-    # atm.train(SAU.original, _model30)
-    # atm.test(_model0)
-
-    # _model30 = [0, "models/gtsrb.oxford.replace30_model.hdf5"]
-    # atm.train(SAU.replace30, _model30)
-    # atm.test(_model30)
-
-    # _model40 = [0, "models/gtsrb.oxford.replace40_model.hdf5"]
-    # atm.train(SAU.replace40, _model40)
-    # atm.test(_model40)
-
-    # _model_w_10 = [0, "models/gtsrb.oxford.w_10_model.hdf5"]
-    # atm.train(SAU.replace_worst_of_10, _model_w_10)
-    # atm.test(_model_w_10)

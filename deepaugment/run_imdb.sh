@@ -1,56 +1,33 @@
 set -x
-run_imdb ()
-{
-    rm /tmp/config*
-    interval=50
-    model_id=$1
-    shift
-    for i in $(seq 0 $interval 19)
-    do
-        if [ "$#" -gt 2 ] && [ "$2" == "-f" ] && [ "$3" == "-o" ]
-        then
-            rm execution_imdb_${model_id}_$1_optimize_f.out
-            python augmented_training.py --strategy $1 --dataset imdb -m $model_id -t $i -e $interval -o -f 2>&1 | tee -a execution_imdb_${model_id}_$1_optimize_f.out
-            python adversarial_attack.py --strategy $1 --dataset imdb -m $model_id -o -f 2>&1 | tee -a execution_imdb_${model_id}_$1_optimize_f.out
-        elif [ "$#" -gt 1 ] && [ "$2" == "-f" ]
-        then
-            rm execution_imdb_${model_id}_$1_f.out
-            python augmented_training.py --strategy $1 --dataset imdb -m $model_id -t $i -e $interval -f 2>&1 | tee -a execution_imdb_${model_id}_$1_f.out
-            python adversarial_attack.py --strategy $1 --dataset imdb -m $model_id -f 2>&1 | tee -a execution_imdb_${model_id}_$1_f.out
-        elif [ "$#" -gt 1 ] && [ "$2" == "-o" ]
-        then
-            rm execution_imdb_${model_id}_$1_optimize.out
-            python augmented_training.py --strategy $1 --dataset imdb -m $model_id -t $i -e $interval -o 2>&1 | tee -a execution_imdb_${model_id}_$1_optimize.out
-            python adversarial_attack.py --strategy $1 --dataset imdb -m $model_id -o 2>&1 | tee -a execution_imdb_${model_id}_$1_optimize.out
-        else
-            rm execution_imdb_${model_id}_$1.out
-            python augmented_training.py --strategy $1 --dataset imdb -m $model_id -t $i -e $interval 2>&1 | tee -a execution_imdb_${model_id}_$1.out
-            python adversarial_attack.py --strategy $1 --dataset imdb -m $model_id 2>&1 | tee -a execution_imdb_${model_id}_$1.out
-        fi
-    done
-}
+
+dataset=imdb
+epoch=50
+optimize=false
+operator=3
 
 run_all()
 {
-    model_id=$1
-    #run_imdb ${model_id} original
-    #run_imdb $model_id replace30
-    #run_imdb $model_id replace_worst_of_10
-    run_imdb $model_id ga_loss
-    #run_imdb $model_id ga_cov
+    for model in 0 # 1 2 3
+    do
+        for approach in replace_worst_of_10 # original replace30 replace_worst_of_10 ga_loss ga_cov 
+        do
+            log_file=execution_${dataset}_${model}_${approach}
+            if $optimize
+            then
+                flag=-o
+                log_file=${log_file}_optimize
+            elif [ $operator == 6 ]
+            then
+                flag=-f
+                log_file=${log_file}_operator6
+            fi
+            log_file=${log_file}.out
 
-    #run_imdb $model_id replace_worst_of_10 -o
-    #run_imdb $model_id ga_loss -o
-
-    #run_imdb $model_id original -f
-    #run_imdb $model_id replace30 -f
-    #run_imdb $model_id replace_worst_of_10 -f
-    #run_imdb $model_id ga_loss -f
-
-    #run_imdb $model_id replace_worst_of_10 -f -o
-    #run_imdb $model_id ga_loss -f -o
+            rm /tmp/config*
+            rm $log_file
+            python augmented_training.py --strategy $approach --dataset $dataset -m $model -t 0 -e ${epoch} $flag 2>&1 | tee -a $log_file
+            python adversarial_attack.py --strategy $approach --dataset $dataset -m $model $flag 2>&1 | tee -a $log_file
+        done
+    done
 }
 
-run_all 2
-run_all 1
-#run_all 0
