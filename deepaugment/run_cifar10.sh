@@ -1,5 +1,6 @@
 set -x
 
+
 dataset=cifar10
 epoch=200
 sa=false

@@ -1,5 +1,4 @@
 dataset/gtsrb/GTSRB/
-dataset/*/models
 dataset/imagenet
 deepaugment/execution*
 experiment_data*
