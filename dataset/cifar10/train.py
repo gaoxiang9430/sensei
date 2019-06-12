@@ -391,7 +391,7 @@ class Cifar10Model:
         model.fit_generator(data,
                             steps_per_epoch=len(x_train)/self.batch_size,
                             validation_data=(x_val, y_val),
-                            epochs=self.epoch, verbose=1, workers=4,
+                            epochs=self.epoch, verbose=1, #workers=4,
                             callbacks=callbacks_list)
         return model
 
