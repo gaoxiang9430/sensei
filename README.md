@@ -7,7 +7,7 @@
 
 ### Installation ###
 #### required libraries ####
-- Tensorflow
+- Tensorflow (or tensonflow-gpu)
 - Keras
 - Cleverhans
 - opencv-python
@@ -15,7 +15,10 @@
 - scikit-learn,scikit-image,pandas (for GSTRB)
 
 
-### Next step and plan ####
-**only with random perturbation for each image (rotation, translation, shear):**
+### Run ####
 
-
+```
+export PYTHONPATH=`pwd`/deepaugment/
+cd deepaugment/deepaugment
+./run_cifar.sh
+```
