@@ -1,6 +1,6 @@
 from dataset.gtsrb.train import GtsrbModel
-from deepaugment.perturbator import Perturbator
-from deepaugment.neural_coverage import NeuralCoverage
+from augment.perturbator import Perturbator
+from augment.neural_coverage import NeuralCoverage
 import copy
 import keras
 import tensorflow as tf

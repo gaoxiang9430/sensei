@@ -1,4 +1,4 @@
-from deepaugment.perturbator import Perturbator
+from augment.perturbator import Perturbator
 import os
 import cv2
 from dataset.gtsrb.train import GtsrbModel

@@ -11,10 +11,10 @@ from keras.preprocessing.image import ImageDataGenerator
 from libs.spacial_transformation import *
 import tensorflow as tf
 import os
-from deepaugment.data_generator import DataGenerator
-from deepaugment.util import logger
-from deepaugment.augmentor import Augmenter
-from deepaugment.config import global_config as config
+from augment.data_generator import DataGenerator
+from augment.util import logger
+from augment.augmentor import Augmenter
+from augment.config import global_config as config
 import copy
 
 from keras.models import Sequential

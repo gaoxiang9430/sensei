@@ -14,8 +14,8 @@ import tensorflow as tf
 from resnet import resnet_v1, lr_schedule
 import os
 import copy
-from deepaugment.data_generator import DataGenerator
-from deepaugment.util import logger
+from augment.data_generator import DataGenerator
+from augment.util import logger
 
 
 class Cifar10Model:

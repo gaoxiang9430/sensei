@@ -1,6 +1,6 @@
 from dataset.gtsrb.train import GtsrbModel
 from dataset.cifar10.train import Cifar10Model
-from deepaugment.augmentor import Augmenter, Perturbator
+from augment.augmentor import Augmenter, Perturbator
 import copy
 import numpy as np
 import time

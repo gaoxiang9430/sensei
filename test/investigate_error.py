@@ -1,7 +1,7 @@
 from dataset.gtsrb.train import GtsrbModel
 from dataset.cifar10.train import Cifar10Model
-from deepaugment.augmentor import Augmenter
-from deepaugment.neural_coverage import NeuralCoverage
+from augment.augmentor import Augmenter
+from augment.neural_coverage import NeuralCoverage
 import copy
 import numpy as np
 import os

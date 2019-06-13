@@ -17,9 +17,9 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import ModelCheckpoint
 import tensorflow as tf
 import cv2
-from deepaugment.data_generator import DataGenerator
-from deepaugment.util import logger
-from deepaugment.config import ExperimentalConfig
+from augment.data_generator import DataGenerator
+from augment.util import logger
+from augment.config import ExperimentalConfig
 from keras.applications.vgg16 import VGG16
 from keras.applications.vgg19 import VGG19
 import h5py

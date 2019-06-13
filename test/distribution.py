@@ -1,10 +1,10 @@
 from dataset.gtsrb.train import GtsrbModel
-from deepaugment.neural_coverage import NeuralCoverage
+from augment.neural_coverage import NeuralCoverage
 import copy
 import tensorflow as tf
 import keras
-from deepaugment.config import global_config as config
-from deepaugment.perturbator import Perturbator
+from augment.config import global_config as config
+from augment.perturbator import Perturbator
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter

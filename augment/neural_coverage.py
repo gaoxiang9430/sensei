@@ -1,6 +1,6 @@
 from collections import defaultdict, OrderedDict
 from keras.models import Model
-from deepaugment.config import *
+from augment.config import *
 import multiprocessing
 from config import ExperimentalConfig
 from keras.backend import int_shape

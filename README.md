@@ -18,7 +18,8 @@
 ### Run ####
 
 ```
-export PYTHONPATH=`pwd`/deepaugment/
-cd deepaugment/deepaugment
+git clone https://github.com/gaoxiang9430/sensei.git
+export PYTHONPATH=$PYTHONPATH:`pwd`/sensei/
+cd sensei/augment
 ./run_cifar.sh
 ```

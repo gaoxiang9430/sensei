@@ -1,7 +1,7 @@
 from dataset.gtsrb.train import GtsrbModel
-from deepaugment.neural_coverage import NeuralCoverage
+from augment.neural_coverage import NeuralCoverage
 import time
-from deepaugment.augmentor import Augmenter
+from augment.augmentor import Augmenter
 import copy
 import gc
 import numpy as np

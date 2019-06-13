@@ -2,7 +2,7 @@ from transformation import Transformation
 import copy
 from config import ExperimentalConfig
 from util import logger
-from deepaugment.perturbator import Perturbator
+from perturbator import Perturbator
 import random
 import numpy as np
 

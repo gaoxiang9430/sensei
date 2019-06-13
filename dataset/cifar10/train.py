@@ -11,8 +11,8 @@ from keras.preprocessing.image import ImageDataGenerator
 import tensorflow as tf
 import os
 import copy
-from deepaugment.data_generator import DataGenerator
-from deepaugment.util import logger
+from augment.data_generator import DataGenerator
+from augment.util import logger
 import cv2
 import numpy as np
 from keras.layers import Conv2D, Dense, Input, add, Activation, GlobalAveragePooling2D, AveragePooling2D

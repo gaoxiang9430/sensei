@@ -20,9 +20,9 @@ from keras.callbacks import ModelCheckpoint
 from skimage import color, exposure, transform
 import tensorflow as tf
 import cv2
-from deepaugment.data_generator import DataGenerator
-from deepaugment.util import logger
-from deepaugment.config import ExperimentalConfig
+from augment.data_generator import DataGenerator
+from augment.util import logger
+from augment.config import ExperimentalConfig
 
 
 def preprocess_img(self, img):

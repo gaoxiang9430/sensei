@@ -1,4 +1,4 @@
-from deepaugment.transformation import Transformation
+from augment.transformation import Transformation
 import copy
 
 if __name__ == '__main__':

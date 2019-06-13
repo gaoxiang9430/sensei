@@ -1,10 +1,10 @@
 from dataset.gtsrb.train import GtsrbModel
 from dataset.cifar10.train import Cifar10Model
-from deepaugment.augmentor import Augmenter, Perturbator
-from deepaugment.neural_coverage import NeuralCoverage
+from augment.augmentor import Augmenter, Perturbator
+from augment.neural_coverage import NeuralCoverage
 import copy
 import numpy as np
-from deepaugment.config import global_config as config
+from augment.config import global_config as config
 
 
 def generate_misclassified_perturbations(model, md, x, y):

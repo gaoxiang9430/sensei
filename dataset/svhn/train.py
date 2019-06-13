@@ -11,9 +11,9 @@ from keras.models import Sequential
 from keras.layers import Dense, Conv2D, MaxPooling2D, Dropout, Flatten, Activation
 from keras.layers.normalization import BatchNormalization
 from keras.preprocessing import image
-from deepaugment.data_generator import DataGenerator
-from deepaugment.util import logger
-from deepaugment.config import ExperimentalConfig
+from augment.data_generator import DataGenerator
+from augment.util import logger
+from augment.config import ExperimentalConfig
 import tensorflow as tf
 from keras import backend as k
 from keras.preprocessing.image import ImageDataGenerator
