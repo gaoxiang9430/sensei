@@ -143,7 +143,7 @@ class KvasirModel:
         self.root_dir = os.path.join(self.script_path, source_dir)
         if not os.path.isdir(self.root_dir):
             logger.fatal("Please download the dataset first.")
-        #prepare_date()
+        prepare_date()
 
         __image_path = os.path.join(self.script_path, "endoscope_images1.npy")
         __label_path = os.path.join(self.script_path, "endoscope_labels1.npy")
