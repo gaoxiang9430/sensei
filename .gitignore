@@ -1,4 +1,5 @@
 dataset/gtsrb/GTSRB/
+dataset/kvasir/kvasir-dataset
 dataset/imagenet
 deepaugment/execution*
 experiment_data*

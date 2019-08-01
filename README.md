@@ -13,6 +13,7 @@
 - opencv-python
 - imutils
 - scikit-learn,scikit-image,pandas (for GSTRB)
+- squeezenet
 
 
 ### Run ####

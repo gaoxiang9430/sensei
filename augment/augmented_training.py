@@ -10,6 +10,7 @@ from dataset.svhn.train import SVHN
 from dataset.fashionmnist.train import FashionMnist
 from dataset.imdb.train import IMDBModel
 from dataset.utk.train import UTKModel
+from dataset.kvasir.train import KvasirModel
 import argparse
 from config import ExperimentalConfig
 from util import SAU, DATASET, logger
@@ -106,6 +107,8 @@ if __name__ == '__main__':
         target0 = IMDBModel("dataset", start_point, epoch)
     elif dat.value == DATASET.utk.value:
         target0 = UTKModel("dataset", start_point, epoch)
+    elif dat.value == DATASET.kvasir.value:
+        target0 = KvasirModel("kvasir-dataset", start_point, epoch)
     else:
         raise Exception('unsupported dataset', dataset)
 

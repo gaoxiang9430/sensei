@@ -61,6 +61,7 @@ class DATASET(Enum):
     svhn = 4
     imdb = 5
     utk = 6
+    kvasir = 7
 
     @staticmethod
     def list():
