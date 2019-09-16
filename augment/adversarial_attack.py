@@ -227,13 +227,15 @@ class AttackModel:
                 else:
                     incorrect += 1
                     incorrect_node += (1-acc)*total_pert
+                '''
                 if i % 1000 == 0:
                     logger.info(print_label + ' - Test accuracy: ' + str(correct / float(i+1)))
                     if incorrect != 0:
                         logger.info(print_label+' - average number of failed perturbation for each misclassified image:'
                                     + str(incorrect_node / float(i+1)))
                     logger.info(print_label + ' - Global accuracy: ' + str(global_acc / float(i+1)))
-            logger.info(print_label + ' - Test accuracy: ' + str(correct / float(len(x_test))))
+                '''
+            logger.info(print_label + ' - robust accuracy: ' + str(correct / float(len(x_test))))
             logger.info(print_label + ' - Global accuracy: ' + str(global_acc / float(len(x_test))))
             if incorrect != 0:
                 logger.info(print_label + ' - average number of failed perturbation for each misclassified image: '
@@ -317,17 +319,19 @@ if __name__ == '__main__':
     _model0 = [model_index, _model_file]
 
     print("===================== test " + aug_strategy + " =====================")
-    am.attack(SAT.original, _model0, "original dataset "+aug_strategy+" oxford model")
-    am.attack(SAT.random, _model0, "random attack " + aug_strategy + " oxford model")
+    print("\n===================== traditional accuracy =====================")
+    am.attack(SAT.original, _model0, aug_strategy+" model")
+    print("\n===================== random attack =====================")
+    am.attack(SAT.random, _model0, aug_strategy + " model")
     '''
     print("\n===================== rotate =====================")
-    am.attack(SAT.rotate, _model0, "rotate attack " + aug_strategy + " oxford model")
+    am.attack(SAT.rotate, _model0, "rotate attack " + aug_strategy + " model")
 
     print("\n===================== translate =====================")
-    am.attack(SAT.translate, _model0, "translate attack " + aug_strategy + " oxford model")
+    am.attack(SAT.translate, _model0, "translate attack " + aug_strategy + " model")
 
     print("\n===================== shear =====================")
-    am.attack(SAT.shear, _model0, "shear attack " + aug_strategy + " oxford model")
+    am.attack(SAT.shear, _model0, "shear attack " + aug_strategy + " model")
     '''
-    print("\n===================== grid =====================")
-    am.attack(SAT.grid2, _model0, "grid attack " + aug_strategy + " oxford model")
+    print("\n===================== grid attack =====================")
+    am.attack(SAT.grid2, _model0, aug_strategy + " model")
