@@ -2,6 +2,7 @@ dataset/gtsrb/GTSRB/
 dataset/kvasir/kvasir-dataset
 dataset/imagenet
 deepaugment/execution*
+dataset/kvasir/endoscope*
 experiment_data*
 *.pyc
 temp

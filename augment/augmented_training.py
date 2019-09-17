@@ -42,24 +42,24 @@ class AugmentedModel:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Augmented Training.')
-    parser.add_argument('-s', '--strategy', dest='strategy', type=str, nargs='+',
+    parser.add_argument('strategy', type=str,
                         help='augmentation strategy, supported strategy:' + str(SAU.list()))
-    parser.add_argument('-d', '--dataset', dest='dataset', type=str, nargs='+',
+    parser.add_argument('dataset', type=str,
                         help='the name of dataset, support dataset:' + str(DATASET.list()))
-    parser.add_argument('-q', '--queue', dest='queue', type=int, nargs='+', default=[10],
+    parser.add_argument('-q', '--queue', dest='queue', type=int, default=10,
                         help='the length of queue for genetic algorithm (default 10)')
-    parser.add_argument('-m', '--model', dest='model', type=int, nargs='+', default=[0],
+    parser.add_argument('-m', '--model', dest='model', type=int, default=0,
                         help='selection of model')
-    parser.add_argument('-t', '--start-point', dest='start_point', type=int, nargs='+', default=0,
+    parser.add_argument('-t', '--start-point', dest='start_point', type=int, default=0,
                         help='the start point of epoch (default from epoch 0)')
-    parser.add_argument('-r', '--threshold', dest='threshold', type=int, nargs='+', default=[3],
+    parser.add_argument('-r', '--threshold', dest='threshold', type=int, default=3,
                         help='the loss threshold for selective augmentation (default 1e-3)')
-    parser.add_argument('-e', '--epoch', dest='epoch', type=int, nargs='+', default=200,
-                        help='the number of training epochs')
+    parser.add_argument('-e', '--epoch', dest='epoch', type=int, default=30,
+                        help='the number of training epochs (default 30)')
     parser.add_argument('-f', '--filter', action='store_true', dest='enable_filter',
                         help='enable filter transformation operators (zoom, blur, contrast, brightness)')
     parser.add_argument('-o', '--optimize', action='store_true', dest='enable_optimize',
-                        help='enable optimize')
+                        help='enable selective augmentation')
 
     args = parser.parse_args()
 
@@ -68,28 +68,28 @@ if __name__ == '__main__':
         exit(1)
 
     # augmentation strategy
-    aug_strategy = args.strategy[0]
+    aug_strategy = args.strategy
     if aug_strategy not in SAU.list():
         logger.error("unsupported strategy, please use --help to find supported ones")
         exit(1)
     # target dataset
-    dataset = args.dataset[0]
+    dataset = args.dataset
     if dataset not in DATASET.list():
         logger.error("unsupported dataset, please use --help to find supported ones")
         exit(1)
 
     config = ExperimentalConfig.gen_config()
 
-    config.queue_len = int(0.4*args.queue[0])
+    config.queue_len = int(0.4*args.queue)
     if config.queue_len<2:
         config.queue_len = 2
-    config.popsize = args.queue[0] - config.queue_len
+    config.popsize = args.queue - config.queue_len
     config.enable_filters = args.enable_filter
     config.enable_optimize = args.enable_optimize
-    start_point = args.start_point[0]
-    epoch = args.epoch[0]
-    model_index = int(args.model[0])
-    config.robust_threshold = 0.1**int(args.threshold[0])
+    start_point = args.start_point
+    epoch = args.epoch
+    model_index = int(args.model)
+    config.robust_threshold = 0.1**int(args.threshold)
 
     # initialize dataset
     dat = DATASET.get_name(dataset)

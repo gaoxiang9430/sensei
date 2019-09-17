@@ -249,15 +249,15 @@ class AttackModel:
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Augmented Training.')
-    parser.add_argument('--strategy', dest='strategy', type=str, nargs='+',
+    parser.add_argument('strategy', type=str,
                         help='augmentation strategy, supported strategy:' + str(SAU.list()))
-    parser.add_argument('--dataset', dest='dataset', type=str, nargs='+',
+    parser.add_argument('dataset',  type=str,
                         help='the name of dataset, support dataset:' + str(DATASET.list()))
     parser.add_argument('-f', '--filter', action='store_true', dest='enable_filter',
                         help='enable filter transformation operators (zoom, blur, contrast, brightness)')
     parser.add_argument('-o', '--optimize', action='store_true', dest='enable_optimize',
                         help='enable optimize')
-    parser.add_argument('-m', '--model', dest='model', type=int, nargs='+', default=[0],
+    parser.add_argument('-m', '--model', dest='model', type=int, default=0,
                         help='selection of model')
 
     args = parser.parse_args()
@@ -266,12 +266,12 @@ if __name__ == '__main__':
         exit(1)
 
     # augmentation strategy
-    aug_strategy = args.strategy[0]
+    aug_strategy = args.strategy
     if aug_strategy not in SAU.list():
         print("unsupported strategy, please use --help to find supported ones")
         exit(1)
     # target dataset
-    dataset = args.dataset[0]
+    dataset = args.dataset
     if dataset not in DATASET.list():
         print("unsupported dataset, please use --help to find supported ones")
         exit(1)
@@ -280,7 +280,7 @@ if __name__ == '__main__':
     config.enable_filters = args.enable_filter
     config.enable_optimize = args.enable_optimize
 
-    model_index = int(args.model[0])
+    model_index = int(args.model)
 
     # initialize dataset
     dat = DATASET.get_name(dataset)
@@ -318,7 +318,7 @@ if __name__ == '__main__':
 
     _model0 = [model_index, _model_file]
 
-    print("===================== test " + aug_strategy + " =====================")
+    print("===================== test " + aug_strategy + " model =====================")
     print("\n===================== traditional accuracy =====================")
     am.attack(SAT.original, _model0, aug_strategy+" model")
     print("\n===================== random attack =====================")
