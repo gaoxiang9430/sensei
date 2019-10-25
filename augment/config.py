@@ -11,6 +11,7 @@ class Config:
     prob_mutate = 0.6  # mutate probability
     popsize = 8
     random_init = False # the population initialization strategy
+    mixup = True
 
     num_processor = 56  # the number of process (for multiprocessing)
     coverage_threshold = 0.5  # differential coverage threshold

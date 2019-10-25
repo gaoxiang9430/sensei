@@ -117,8 +117,13 @@ class DataGenerator(keras.utils.Sequence):
             self.x_train[start:end] = x
 
         # regularly show debug information
-        if index % 50 == 0:
-            self.original_target.test_dnn_model(self.model, "After: Loss of new x: ", x, y)
+        # if index % 50 == 0:
+        #     self.original_target.test_dnn_model(self.model, "After: Loss of new x: ", x, y)
+
+        if self.config.mixup:
+            x_temp, y_temp = self.original_target.mixup(x, y)
+            return x_temp, y_temp
+
         return x, y
 
     def on_epoch_end(self):

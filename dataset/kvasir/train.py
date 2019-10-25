@@ -48,7 +48,7 @@ from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras.optimizers import SGD, Adam, RMSprop, Adagrad, Nadam, Adadelta, Adamax
 from keras.utils import to_categorical
-
+import torch
 
 def prepare_date():
     images1 = []
@@ -274,6 +274,21 @@ class KvasirModel:
         imgs = np.asarray(imgs)
         imgs = np.array(imgs, dtype='float32')/255
         return imgs
+
+    def mixup(self, x_pre_mix, y_pre_mix, alpha=1.0):
+        """ Returns mixed inputs, pairs of targets, and lambda """
+        if alpha > 0:
+            lam = np.random.beta(alpha, alpha)
+        else:
+            lam = 1
+
+        batch_size = len(x_pre_mix)
+        index = torch.randperm(batch_size)
+
+        mixed_x = lam * x_pre_mix + (1 - lam) * x_pre_mix[index, :]
+        mixed_y = lam * y_pre_mix + (1 - lam) * y_pre_mix[index]
+        return mixed_x, mixed_y
+
 
     def train_dnn_model(self, _model=[1, "models/kvasir.hdf5"], x_train=None, y_train=None,
                         x_val=None, y_val=None, train_strategy=None):

@@ -26,6 +26,7 @@ from augment.config import ExperimentalConfig
 from keras.datasets import mnist, fashion_mnist
 from keras.constraints import maxnorm
 from keras.layers.normalization import BatchNormalization
+import torch
 
 
 class FashionMnist:
@@ -191,6 +192,21 @@ class FashionMnist:
         else:
             raise Exception("unsupported model")
         return return_model
+
+    def mixup(self, x_pre_mix, y_pre_mix, alpha=1.0):
+        """ Returns mixed inputs, pairs of targets, and lambda """
+        if alpha > 0:
+            lam = np.random.beta(alpha, alpha)
+        else:
+            lam = 1
+
+        batch_size = len(x_pre_mix)
+        index = torch.randperm(batch_size)
+
+        mixed_x = lam * x_pre_mix + (1 - lam) * x_pre_mix[index, :]
+        mixed_y = lam * y_pre_mix + (1 - lam) * y_pre_mix[index]
+        return mixed_x, mixed_y
+
 
     def train_dnn_model(self, _model=[0, "models/gtsrb"], x_train=None, y_train=None,
                         x_val=None, y_val=None, train_strategy=None):
