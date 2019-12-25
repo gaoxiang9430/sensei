@@ -32,3 +32,17 @@ python augmented_training.py STRATEGY DATASET -m MODEL_ID -e EPOCHs
 python adversarial_attack.py STRATEGY DATASET -m MODEL_ID
 ```
 
+### Publication
+**Fuzz Testing based Data Augmentation to Improve Robustness of Deep Neural Networks** <br>
+Xiang Gao, Ripon K. Saha, Mukul R. Prasad, Abhik Roychoudhury<br>
+*ACM/IEEE 42nd International Conference on Software Engineering (ICSE) 2020.*
+
+### Contributors
+Principal investigator:
+- Mukul R. Prasad
+- Abhik Roychoudhury
+- Ripon K. Saha
+
+Developers:
+- Xiang Gao
+- Ripon K. Saha
