@@ -10,8 +10,8 @@ class Config:
     queue_len = 7  # config the size of queue for genetic algorithm
     prob_mutate = 0.6  # mutate probability
     popsize = 8
-    random_init = False # the population initialization strategy
-    mixup = True
+    random_init = True # the population initialization strategy
+    mixup = False
 
     num_processor = 56  # the number of process (for multiprocessing)
     coverage_threshold = 0.5  # differential coverage threshold
@@ -22,9 +22,8 @@ class Config:
     enable_filters = False  # zoom, blur, brightness, contrast
     """ define translation range """
     rotation_range = range(-30, 31)  # [-30, 30, 1]       - 60
-    # rotation_range is set to 15 for cifar 10
-    # rotation_range = range(-15, 15)                          # [-15, 15, 1]       - 30
     translate_range = range(-3, 4)  # [-3, 3, 1]         - 6
+    #shear_range = [0]
     shear_range = list(np.array(range(-20, 21)) * 1.0 / 200)  # [-0.1, 0.1, 0.005] - 40
     """ define filter translation range """
     # zoom_range = range(1, 2)
@@ -72,7 +71,7 @@ class ExperimentalConfig:
     config = None
     # get a system unique id for ubuntu system, 
     # the system_id can be replaced by any unique system id or even a constant
-    system_id = commands.getstatusoutput("ifconfig | grep eno1 | awk '{print $NF}' | sed 's/://g'")[1]
+    system_id = "1" #commands.getstatusoutput("ifconfig | grep eno1 | awk '{print $NF}' | sed 's/://g'")[1]
 
     @staticmethod
     def gen_config():

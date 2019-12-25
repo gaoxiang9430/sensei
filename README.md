@@ -29,6 +29,6 @@ python augmented_training.py STRATEGY DATASET -m MODEL_ID -e EPOCHs
 ```
 3. Model testing
 ```
-python adversarial_attack.py TRATEGY DATASET -m MODEL_ID
+python adversarial_attack.py STRATEGY DATASET -m MODEL_ID
 ```
 
