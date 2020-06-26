@@ -27,9 +27,17 @@ cd sensei/augment
 ```
 python augmented_training.py STRATEGY DATASET -m MODEL_ID -e EPOCHs
 ```
+For instance:
+```
+python augmented_training.py ga_loss fashionmnist -m 1 -e 50 # ga_loss (Sensei)
+```
 3. Model testing
 ```
 python adversarial_attack.py STRATEGY DATASET -m MODEL_ID
+```
+For instance:
+```
+python adversarial_attack.py ga_loss fashionmnist -m 1 # ga_loss (Sensei)
 ```
 
 ### Publication

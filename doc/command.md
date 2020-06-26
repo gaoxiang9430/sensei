@@ -1,4 +1,7 @@
 The command option for model training:
+
+Note that this repo only contains the code to train models, but does **not** include the original dataset. Since the datasets of cifar10 and fashionmnist are included in the kares library, you can directly train their models. As for the other dataset, you first need to manually download the dataset and put it in the dataset/dataset-name directory.
+
 ```
 usage: augmented_training.py [-h] [-q QUEUE] [-m MODEL] [-t START_POINT]
                              [-r THRESHOLD] [-e EPOCH] [-f] [-o]
